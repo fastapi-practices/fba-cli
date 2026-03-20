@@ -2,7 +2,7 @@
 import chalk from 'chalk'
 import { existsSync } from 'fs'
 import { getInfraDir } from '../lib/config.js'
-import { requireProjectDir } from '../lib/errors.js'
+import { requireProjectDir, fatal } from '../lib/errors.js'
 import { composeDown, isComposeRunning } from '../lib/docker.js'
 import { t } from '../lib/i18n.js'
 
@@ -11,22 +11,21 @@ export async function infraStopAction(options: { project?: string }) {
   const infraDir = getInfraDir(projectDir)
 
   if (!existsSync(infraDir)) {
-    const { fatal } = await import('../lib/errors.js')
-    fatal('Infrastructure directory not found', `Expected at: ${infraDir}`)
+    fatal(t('infraDirNotFound'), `${t('expectedAt')} ${infraDir}`)
   }
 
   const running = await isComposeRunning(infraDir)
   if (!running) {
-    console.log(chalk.dim('  Infrastructure is not running.'))
+    console.log(chalk.dim(`  ${t('infraNotRunning')}`))
     return
   }
 
-  console.log(chalk.cyan('\n  Stopping infrastructure...\n'))
-  const ok = await composeDown(infraDir, 'Stopping services')
+  console.log(chalk.cyan(`\n  ${t('infraStopping')}\n`))
+  const ok = await composeDown(infraDir, t('stoppingServices'))
   if (ok) {
-    console.log(chalk.green('  ✓ Infrastructure stopped.'))
+    console.log(chalk.green(`  ✓ ${t('infraStopped')}`))
   } else {
-    console.log(chalk.red('  ✗ Failed to stop infrastructure.'))
-    console.log(chalk.dim(`    Try manually: cd ${infraDir} && docker compose down`))
+    console.log(chalk.red(`  ✗ ${t('infraStopFailed')}`))
+    console.log(chalk.dim(`    ${t('tryManualCompose')} cd ${infraDir} && docker compose down`))
   }
 }

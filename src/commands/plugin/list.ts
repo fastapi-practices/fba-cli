@@ -24,10 +24,10 @@ export async function pluginListAction(options: { project?: string }) {
   console.log(chalk.dim(' ─'.repeat(25)))
   console.log(
     chalk.dim(' ') +
-    padRight('Name', 20) +
-    padRight('Type', 10) +
-    padRight('Version', 10) +
-    'Author'
+    padRight(t('pluginTableName'), 20) +
+    padRight(t('pluginTableType'), 10) +
+    padRight(t('pluginTableVersion'), 10) +
+    t('pluginTableAuthor')
   )
   console.log(chalk.dim(' ─'.repeat(25)))
 
@@ -43,7 +43,7 @@ export async function pluginListAction(options: { project?: string }) {
   }
 
   console.log(chalk.dim(' ─'.repeat(25)))
-  console.log(chalk.dim(` Total: ${plugins.length} plugins (${webCount} web, ${serverCount} server)`))
+  console.log(chalk.dim(` ${t('pluginTotal')}: ${plugins.length} ${t('pluginCount')} (${webCount} web, ${serverCount} server)`))
   console.log()
 }
 

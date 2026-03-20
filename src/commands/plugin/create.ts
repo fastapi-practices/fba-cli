@@ -41,7 +41,7 @@ export async function pluginCreateAction(options: { project?: string }) {
     },
     name: () => clack.text({
       message: t('pluginCreateName'),
-      validate: (v) => !v?.trim() ? 'Required' : undefined,
+      validate: (v) => !v?.trim() ? t('pluginRequired') : undefined,
     }),
     summary: () => clack.text({ message: t('pluginCreateSummary'), defaultValue: '' }),
     version: () => clack.text({ message: t('pluginCreateVersion'), defaultValue: '0.0.1' }),
@@ -79,12 +79,12 @@ export async function pluginCreateAction(options: { project?: string }) {
       : join(getBackendPluginDir(projectDir), config.name)
 
     if (existsSync(targetDir)) {
-      clack.log.warn(chalk.yellow(`Directory already exists: ${targetDir}`))
+      clack.log.warn(chalk.yellow(`${t('pluginDirExists')}: ${targetDir}`))
       continue
     }
 
     const createSpinner = clack.spinner()
-    createSpinner.start(`Creating ${pluginType} plugin: ${config.name}`)
+    createSpinner.start(`${t('pluginCreating')} ${pluginType}: ${config.name}`)
 
     try {
       // 1. 渲染模板
@@ -116,9 +116,9 @@ export async function pluginCreateAction(options: { project?: string }) {
       // 3. 初始化 Git
       await gitInit(targetDir)
 
-      createSpinner.stop(`${pluginType} plugin created ✓`)
+      createSpinner.stop(`${pluginType} ${t('pluginCreated')}`)
     } catch (e: any) {
-      createSpinner.stop(`Failed: ${e.message}`)
+      createSpinner.stop(`${t('pluginCreateFailed')}: ${e.message}`)
     }
   }
 

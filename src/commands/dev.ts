@@ -29,10 +29,10 @@ export async function devAction(options: {
     if (existsSync(infraDir)) {
       const running = await isComposeRunning(infraDir)
       if (!running) {
-        clack.log.info(chalk.yellow('Infrastructure is not running, starting...'))
+        clack.log.info(chalk.yellow(t('infraNotRunningStarting')))
         const ok = await composeUp(infraDir, t('initInfra'))
         if (!ok) {
-          warn('Failed to start infrastructure, try: cd infra && docker compose up -d')
+          warn(t('infraStartHint'), `cd infra && docker compose up -d`)
         }
       }
     }
@@ -46,7 +46,7 @@ export async function devAction(options: {
   if (options.noReload) args.push('--no-reload')
   if (options.workers) args.push('--workers', options.workers)
 
-  console.log(chalk.cyan(`\n  Starting backend server on port ${port}...\n`))
+  console.log(chalk.cyan(`\n  ${t('devStartingBackend')} ${port}...\n`))
   const exitCode = await runInherited('uv', args, backendDir)
   process.exit(exitCode)
 }
@@ -66,7 +66,7 @@ export async function devWebAction(options: {
   if (options.host) args.push('--host', options.host)
   if (options.port) args.push('--port', options.port)
 
-  console.log(chalk.cyan(`\n  Starting frontend dev server...\n`))
+  console.log(chalk.cyan(`\n  ${t('devStartingFrontend')}\n`))
   const exitCode = await runInherited('pnpm', args, frontendDir)
   process.exit(exitCode)
 }
@@ -79,15 +79,15 @@ export async function devCeleryAction(subcommand: string, options: { project?: s
   if (!valid.includes(subcommand)) {
     const { fatal } = await import('../lib/errors.js')
     fatal(
-      `Invalid subcommand: ${subcommand}`,
-      `Valid options: ${valid.join(', ')}`,
+      `${t('invalidSubcommand')}: ${subcommand}`,
+      `${t('validOptions')}: ${valid.join(', ')}`,
     )
   }
 
   const projectDir = requireProjectDir(options.project)
   const backendDir = requireBackendDir(projectDir)
 
-  console.log(chalk.cyan(`\n  Starting Celery ${subcommand}...\n`))
+  console.log(chalk.cyan(`\n  ${t('devStartingCelery')} ${subcommand}...\n`))
   const exitCode = await runInherited('uv', ['run', 'fba', 'celery', subcommand], backendDir)
   process.exit(exitCode)
 }

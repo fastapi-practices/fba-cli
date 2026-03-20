@@ -49,7 +49,7 @@ let _infraDir: string | null = null;
 
 async function cleanup() {
   if (!_cleanupDir) return;
-  console.log(chalk.yellow(`\n\n  ⟲ Rolling back: removing ${_cleanupDir}`));
+  console.log(chalk.yellow(`\n\n  ⟲ ${t('rollingBack')} ${_cleanupDir}`));
 
   // 先尝试停止 docker compose
   if (_infraDir && existsSync(_infraDir)) {
@@ -63,10 +63,10 @@ async function cleanup() {
   // 删除项目目录
   try {
     rmSync(_cleanupDir, { recursive: true, force: true });
-    console.log(chalk.green("  ✓ Cleanup complete.\n"));
+    console.log(chalk.green(`  ✓ ${t('cleanupComplete')}\n`));
   } catch (e: any) {
-    console.error(chalk.red(`  ✗ Cleanup failed: ${e.message}`));
-    console.error(chalk.dim(`    Please manually remove: ${_cleanupDir}\n`));
+    console.error(chalk.red(`  ✗ ${t('cleanupFailed')}: ${e.message}`));
+    console.error(chalk.dim(`    ${t('manualRemoveHint')} ${_cleanupDir}\n`));
   }
 
   _cleanupDir = null;
@@ -215,10 +215,10 @@ async function _createFlow() {
   const frontendDir = join(projectDir, projectConfig.frontendName);
 
   const backendCloned = await gitClone(BACKEND_REPO, backendDir, {
-    label: `Backend → ${projectConfig.backendName}`,
+    label: `${t('labelBackend')} → ${projectConfig.backendName}`,
   });
   const frontendCloned = await gitClone(FRONTEND_REPO, frontendDir, {
-    label: `Frontend → ${projectConfig.frontendName}`,
+    label: `${t('labelFrontend')} → ${projectConfig.frontendName}`,
   });
 
   if (!backendCloned || !frontendCloned) {
@@ -259,9 +259,9 @@ async function _createFlow() {
     const infraSelection = await clack.multiselect({
       message: `${t("infraSelect")} ${chalk.dim(t("multiselectHint"))}`,
       options: [
-        { value: "database", label: selectedDbType === 'mysql' ? t("infraMysql") : t("infraPostgres"), hint: "Database" },
-        { value: "redis", label: t("infraRedis"), hint: "Cache" },
-        { value: "rabbitmq", label: t("infraRabbitmq"), hint: "Message Queue" },
+        { value: "database", label: selectedDbType === 'mysql' ? t("infraMysql") : t("infraPostgres"), hint: t("hintDatabase") },
+        { value: "redis", label: t("infraRedis"), hint: t("hintCache") },
+        { value: "rabbitmq", label: t("infraRabbitmq"), hint: t("hintMessageQueue") },
       ],
       initialValues: ["database", "redis", "rabbitmq"],
       required: false,
@@ -540,7 +540,7 @@ async function _createFlow() {
     ].join("\n"),
     t("nextSteps"),
   );
-  clack.outro(chalk.cyan("Happy coding! 🚀"));
+  clack.outro(chalk.cyan(t('happyCoding')));
 
   // 创建成功，不再需要回退
   _cleanupDir = null;

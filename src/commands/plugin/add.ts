@@ -25,7 +25,7 @@ export async function pluginAddAction(options: {
   // 带参数模式
   if (options.repoUrl || options.path) {
     if (!options.b && !options.f) {
-      fatal('Must specify -b (backend) or -f (frontend)', 'Example: fba plugin add -b --repo-url <url>')
+      fatal(t('pluginMustSpecifyType'), t('pluginSpecifyHint'))
     }
 
     if (options.f) {
@@ -75,18 +75,18 @@ export async function pluginMarketFlow(projectDir: string) {
   try {
     plugins = await fetchPluginMarketData()
   } catch (e: any) {
-    loadSpinner.stop(chalk.red(`Failed to load plugin market: ${e.message}`))
+    loadSpinner.stop(chalk.red(`${t('pluginLoadFailed')}: ${e.message}`))
     return
   }
-  loadSpinner.stop(`${t('pluginMarketTitle')} (${plugins.length} plugins)`)
+  loadSpinner.stop(`${t('pluginMarketTitle')} (${plugins.length} ${t('pluginCount')})`)
 
   // 类型过滤
   const typeFilter = await clack.select({
     message: t('pluginFilter'),
     options: [
-      { value: 'all', label: 'All' },
-      { value: 'web', label: 'Frontend (web)' },
-      { value: 'server', label: 'Backend (server)' },
+      { value: 'all', label: t('pluginFilterAll') },
+      { value: 'web', label: t('pluginFilterFrontend') },
+      { value: 'server', label: t('pluginFilterBackend') },
     ],
   })
   if (clack.isCancel(typeFilter)) return

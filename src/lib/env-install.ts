@@ -1,6 +1,7 @@
 // env-install.ts — 缺失环境安装
 import { run } from './process.js'
 import { getUvInstaller } from './platform.js'
+import { t } from './i18n.js'
 import type { EnvCheckResult } from '../types/env.js'
 
 /**
@@ -19,7 +20,7 @@ export async function installTool(tool: EnvCheckResult): Promise<boolean> {
 
   const result = await run(installer.cmd, installer.args, {
     spinner: true,
-    label: `Installing ${tool.name}`,
+    label: `${t('installingTool')} ${tool.name}`,
   })
 
   return result.exitCode === 0

@@ -13,11 +13,11 @@ export async function removeAction() {
   }
 
   const toRemove = await clack.multiselect({
-    message: `选择要移除的项目 / Select projects to remove ${chalk.dim(t('multiselectHint'))}`,
+    message: `${t('removeSelectProjects')} ${chalk.dim(t('multiselectHint'))}`,
     options: config.projects.map(p => ({
       value: p.path,
       label: p.name,
-      hint: p.path + (p.path === config.current ? ' (current)' : ''),
+      hint: p.path + (p.path === config.current ? ` ${t('currentMarker')}` : ''),
     })),
     required: false,
   })
@@ -25,7 +25,7 @@ export async function removeAction() {
   if (clack.isCancel(toRemove) || toRemove.length === 0) return
 
   const confirmed = await clack.confirm({
-    message: `确认移除 ${toRemove.length} 个项目？(仅从列表移除，不删除文件)`,
+    message: `${t('removeConfirm')} (${toRemove.length})`,
   })
   if (clack.isCancel(confirmed) || !confirmed) return
 

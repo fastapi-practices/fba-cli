@@ -34,13 +34,13 @@ export function requireProjectDir(cliProjectDir?: string): string {
   if (!projectDir) {
     fatal(
       t('projectNoCurrent'),
-      'Run "fba create" to create a project, or "fba use" to set a default project.',
+      t('hintRunCreate'),
     )
   }
   if (!existsSync(projectDir)) {
     fatal(
-      `Project directory does not exist: ${projectDir}`,
-      'Run "fba remove" to clean up, or "fba create" to create a new project.',
+      `${t('projectDirNotExist')}: ${projectDir}`,
+      t('hintRunRemove'),
     )
   }
   return projectDir
@@ -54,8 +54,8 @@ export function requireBackendDir(projectDir: string): string {
   if (!existsSync(backendDir)) {
     const config = readProjectConfig(projectDir)
     fatal(
-      `Backend directory not found: ${config.backend_name}`,
-      `Expected at: ${backendDir}`,
+      `${t('backendDirNotFound')}: ${config.backend_name}`,
+      `${t('expectedAt')} ${backendDir}`,
     )
   }
   return backendDir
@@ -69,8 +69,8 @@ export function requireFrontendDir(projectDir: string): string {
   if (!existsSync(frontendDir)) {
     const config = readProjectConfig(projectDir)
     fatal(
-      `Frontend directory not found: ${config.frontend_name}`,
-      `Expected at: ${frontendDir}`,
+      `${t('frontendDirNotFound')}: ${config.frontend_name}`,
+      `${t('expectedAt')} ${frontendDir}`,
     )
   }
   return frontendDir

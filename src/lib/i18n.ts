@@ -7,6 +7,10 @@ const messages = {
     welcome: '欢迎使用 FastAPI Best Architecture!',
     pressEnterToContinue: '按回车键继续...',
     multiselectHint: '(空格选取, 回车提交)',
+    happyCoding: '祝编码愉快! 🚀',
+
+    // Language
+    selectLanguage: '选择语言',
 
     // Environment
     envChecking: '正在检查环境...',
@@ -17,6 +21,7 @@ const messages = {
     envInstallSuccess: '安装成功',
     envInstallFail: '安装失败',
     envSelectInstall: '选择要安装的工具',
+    installingTool: '正在安装',
 
     // Create
     projectName: '项目名称',
@@ -27,6 +32,14 @@ const messages = {
     cloningRepos: '正在克隆仓库...',
     cloneSuccess: '仓库克隆成功',
     cloneFail: '仓库克隆失败',
+    labelBackend: '后端',
+    labelFrontend: '前端',
+
+    // Rollback / Cleanup
+    rollingBack: '正在回退: 删除',
+    cleanupComplete: '清理完成。',
+    cleanupFailed: '清理失败',
+    manualRemoveHint: '请手动删除:',
 
     // Infra
     infraSelect: '选择开发基础设施',
@@ -39,6 +52,23 @@ const messages = {
     infraDockerCheck: '正在检查 Docker 环境...',
     infraDockerFail: 'Docker 不可用，跳过基础设施创建',
     infraCreating: '正在创建基础设施...',
+    infraDirNotFound: '基础设施目录未找到',
+    infraAlreadyRunning: '基础设施已在运行。',
+    infraNotRunning: '基础设施未在运行。',
+    infraNotRunningStarting: '基础设施未运行，正在启动...',
+    infraStarting: '正在启动基础设施...',
+    infraStarted: '基础设施已启动。',
+    infraStartFailed: '基础设施启动失败。',
+    infraStopping: '正在停止基础设施...',
+    infraStopped: '基础设施已停止。',
+    infraStopFailed: '基础设施停止失败。',
+    infraStartHint: '启动基础设施失败，请尝试:',
+    startingServices: '正在启动服务',
+    stoppingServices: '正在停止服务',
+    tryManualCompose: '请手动尝试:',
+    hintDatabase: '数据库',
+    hintCache: '缓存',
+    hintMessageQueue: '消息队列',
 
     // Config
     dbHost: '数据库主机',
@@ -97,6 +127,23 @@ const messages = {
     pluginPnpmInstall: '是否执行 pnpm install 安装依赖？',
     pluginListTitle: '已安装插件',
     pluginListEmpty: '暂无已安装的插件',
+    pluginLoadFailed: '加载插件市场失败',
+    pluginCount: '个插件',
+    pluginFilterAll: '全部',
+    pluginFilterFrontend: '前端 (web)',
+    pluginFilterBackend: '后端 (server)',
+    pluginMustSpecifyType: '必须指定 -b (后端) 或 -f (前端)',
+    pluginSpecifyHint: '示例: fba-cli plugin add -b --repo-url <url>',
+    pluginRequired: '必填',
+    pluginDirExists: '目录已存在',
+    pluginCreating: '正在创建插件',
+    pluginCreated: '插件已创建 ✓',
+    pluginCreateFailed: '创建失败',
+    pluginTableName: '名称',
+    pluginTableType: '类型',
+    pluginTableVersion: '版本',
+    pluginTableAuthor: '作者',
+    pluginTotal: '共计',
 
     // Completion
     createSuccess: '项目创建成功!',
@@ -111,6 +158,49 @@ const messages = {
     projectNotFound: '项目不存在',
     projectListEmpty: '暂无已注册项目',
     goClipboard: '已复制到剪贴板！粘贴以导航：',
+
+    // Errors & hints
+    projectDirNotExist: '项目目录不存在',
+    backendDirNotFound: '后端目录未找到',
+    frontendDirNotFound: '前端目录未找到',
+    expectedAt: '预期路径:',
+    hintRunCreate: '运行 "fba-cli create" 创建项目，或运行 "fba-cli use" 设置默认项目',
+    hintRunRemove: '运行 "fba-cli remove" 清理，或运行 "fba-cli create" 创建新项目',
+    hintRunUse: '运行 "fba-cli use" 设置默认项目',
+
+    // Dev server
+    devStartingBackend: '正在启动后端服务器，端口:',
+    devStartingFrontend: '正在启动前端开发服务器...',
+    devStartingCelery: '正在启动 Celery',
+    invalidSubcommand: '无效子命令',
+    validOptions: '有效选项',
+
+    // Go
+    goEnteringProject: '进入项目:',
+    goShell: 'Shell:',
+    goExitHint: '输入 "exit" 或 Ctrl+D 返回',
+
+    // Remove
+    removeSelectProjects: '选择要移除的项目',
+    removeConfirm: '确认移除？(仅从列表移除，不删除文件)',
+    currentMarker: '(当前)',
+
+    // Config set
+    configLanguageLabel: '语言',
+    configSelectLanguage: '选择语言',
+    configLanguageSet: '语言 →',
+    configShellLabel: 'Shell (fba-cli go)',
+    configShellPath: 'Shell 路径 (留空使用环境默认)',
+    configShellSet: 'Shell →',
+    configDefaultProject: '默认项目',
+    configNoProjects: '暂无已注册项目',
+    configSelectDefault: '选择默认项目',
+    configDefaultSet: '默认项目 →',
+    configSelectSetting: '选择要设置的配置项',
+    configEnvDefault: '环境默认',
+
+    // Edit
+    editOpening: '正在使用编辑器打开',
 
     // CLI Help
     cliDescription: '创建、管理和运行 fastapi-best-architecture 项目的 CLI 工具',
@@ -153,6 +243,9 @@ const messages = {
     welcome: 'Welcome to FastAPI Best Architecture!',
     pressEnterToContinue: 'Press Enter to continue...',
     multiselectHint: '(space to select, enter to submit)',
+    happyCoding: 'Happy coding! 🚀',
+
+    selectLanguage: 'Select language',
 
     envChecking: 'Checking environment...',
     envFound: 'found',
@@ -162,6 +255,7 @@ const messages = {
     envInstallSuccess: 'Installed successfully',
     envInstallFail: 'Installation failed',
     envSelectInstall: 'Select tools to install',
+    installingTool: 'Installing',
 
     projectName: 'Project name',
     projectNameRequired: 'Project name is required',
@@ -171,6 +265,13 @@ const messages = {
     cloningRepos: 'Cloning repositories...',
     cloneSuccess: 'Repositories cloned',
     cloneFail: 'Clone failed',
+    labelBackend: 'Backend',
+    labelFrontend: 'Frontend',
+
+    rollingBack: 'Rolling back: removing',
+    cleanupComplete: 'Cleanup complete.',
+    cleanupFailed: 'Cleanup failed',
+    manualRemoveHint: 'Please manually remove:',
 
     infraSelect: 'Select development infrastructure',
     infraDatabase: 'Database (PostgreSQL / MySQL)',
@@ -182,6 +283,23 @@ const messages = {
     infraDockerCheck: 'Checking Docker environment...',
     infraDockerFail: 'Docker is not available, skipping infrastructure creation',
     infraCreating: 'Creating infrastructure...',
+    infraDirNotFound: 'Infrastructure directory not found',
+    infraAlreadyRunning: 'Infrastructure is already running.',
+    infraNotRunning: 'Infrastructure is not running.',
+    infraNotRunningStarting: 'Infrastructure is not running, starting...',
+    infraStarting: 'Starting infrastructure...',
+    infraStarted: 'Infrastructure started.',
+    infraStartFailed: 'Failed to start infrastructure.',
+    infraStopping: 'Stopping infrastructure...',
+    infraStopped: 'Infrastructure stopped.',
+    infraStopFailed: 'Failed to stop infrastructure.',
+    infraStartHint: 'Failed to start infrastructure, try:',
+    startingServices: 'Starting services',
+    stoppingServices: 'Stopping services',
+    tryManualCompose: 'Try manually:',
+    hintDatabase: 'Database',
+    hintCache: 'Cache',
+    hintMessageQueue: 'Message Queue',
 
     dbHost: 'Database host',
     dbPort: 'Database port',
@@ -237,6 +355,23 @@ const messages = {
     pluginPnpmInstall: 'Run pnpm install to install dependencies?',
     pluginListTitle: 'Installed Plugins',
     pluginListEmpty: 'No plugins installed',
+    pluginLoadFailed: 'Failed to load plugin market',
+    pluginCount: 'plugins',
+    pluginFilterAll: 'All',
+    pluginFilterFrontend: 'Frontend (web)',
+    pluginFilterBackend: 'Backend (server)',
+    pluginMustSpecifyType: 'Must specify -b (backend) or -f (frontend)',
+    pluginSpecifyHint: 'Example: fba-cli plugin add -b --repo-url <url>',
+    pluginRequired: 'Required',
+    pluginDirExists: 'Directory already exists',
+    pluginCreating: 'Creating plugin',
+    pluginCreated: 'plugin created ✓',
+    pluginCreateFailed: 'Failed',
+    pluginTableName: 'Name',
+    pluginTableType: 'Type',
+    pluginTableVersion: 'Version',
+    pluginTableAuthor: 'Author',
+    pluginTotal: 'Total',
 
     createSuccess: 'Project created successfully!',
     nextSteps: 'Next steps',
@@ -249,6 +384,43 @@ const messages = {
     projectNotFound: 'Project not found',
     projectListEmpty: 'No projects registered',
     goClipboard: 'Copied to clipboard! Paste to navigate:',
+
+    projectDirNotExist: 'Project directory does not exist',
+    backendDirNotFound: 'Backend directory not found',
+    frontendDirNotFound: 'Frontend directory not found',
+    expectedAt: 'Expected at:',
+    hintRunCreate: 'Run "fba-cli create" to create a project, or "fba-cli use" to set a default project',
+    hintRunRemove: 'Run "fba-cli remove" to clean up, or "fba-cli create" to create a new project',
+    hintRunUse: 'Run "fba-cli use" to set a default project',
+
+    devStartingBackend: 'Starting backend server on port',
+    devStartingFrontend: 'Starting frontend dev server...',
+    devStartingCelery: 'Starting Celery',
+    invalidSubcommand: 'Invalid subcommand',
+    validOptions: 'Valid options',
+
+    goEnteringProject: 'Entering project:',
+    goShell: 'Shell:',
+    goExitHint: 'Type "exit" or Ctrl+D to return',
+
+    removeSelectProjects: 'Select projects to remove',
+    removeConfirm: 'Confirm removal? (only removes from registry, files are not deleted)',
+    currentMarker: '(current)',
+
+    configLanguageLabel: 'Language',
+    configSelectLanguage: 'Select language',
+    configLanguageSet: 'Language →',
+    configShellLabel: 'Shell (fba-cli go)',
+    configShellPath: 'Shell path (leave blank for env default)',
+    configShellSet: 'Shell →',
+    configDefaultProject: 'Default project',
+    configNoProjects: 'No projects registered',
+    configSelectDefault: 'Select default project',
+    configDefaultSet: 'Default project →',
+    configSelectSetting: 'Select setting',
+    configEnvDefault: 'env default',
+
+    editOpening: 'Opening with editor',
 
     // CLI Help
     cliDescription: 'CLI tool for creating, managing, and running fastapi-best-architecture projects',
@@ -286,8 +458,6 @@ const messages = {
     optNoSql: 'Skip SQL execution',
     optDbType: 'Database type (mysql/postgresql)',
     optPkType: 'Primary key type',
-
-    selectLanguage: 'Select language',
   },
 } as const
 
