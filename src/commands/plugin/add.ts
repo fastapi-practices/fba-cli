@@ -95,7 +95,7 @@ export async function pluginMarketFlow(projectDir: string) {
 
   // 多选插件
   const selected = await clack.multiselect({
-    message: t('pluginSearch'),
+    message: `${t('pluginSearch')} ${chalk.dim(t('multiselectHint'))}`,
     options: filtered.map((p, i) => ({
       value: i,
       label: `${p.plugin.summary}`,

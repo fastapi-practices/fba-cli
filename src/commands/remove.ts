@@ -13,7 +13,7 @@ export async function removeAction() {
   }
 
   const toRemove = await clack.multiselect({
-    message: '选择要移除的项目 / Select projects to remove',
+    message: `选择要移除的项目 / Select projects to remove ${chalk.dim(t('multiselectHint'))}`,
     options: config.projects.map(p => ({
       value: p.path,
       label: p.name,

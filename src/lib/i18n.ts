@@ -6,6 +6,7 @@ const messages = {
     // General
     welcome: '欢迎使用 FastAPI Best Architecture!',
     pressEnterToContinue: '按回车键继续...',
+    multiselectHint: '(空格选取, 回车提交)',
 
     // Environment
     envChecking: '正在检查环境...',
@@ -20,6 +21,7 @@ const messages = {
     // Create
     projectName: '项目名称',
     projectNameRequired: '项目名称不能为空',
+    projectNameExists: '目录已存在，请重新输入',
     frontendName: '前端文件夹名',
     backendName: '后端文件夹名',
     cloningRepos: '正在克隆仓库...',
@@ -50,6 +52,9 @@ const messages = {
     mqPassword: 'RabbitMQ 密码',
     serverPort: '后端服务端口',
     webPort: '前端服务端口',
+    envConfigTitle: '配置后端服务连接信息',
+    envConfigHintDocker: '(由 Docker 管理)',
+    envConfigHintExternal: '(外部服务)',
 
     // Init
     initProject: '正在初始化项目...',
@@ -144,6 +149,7 @@ const messages = {
   en: {
     welcome: 'Welcome to FastAPI Best Architecture!',
     pressEnterToContinue: 'Press Enter to continue...',
+    multiselectHint: '(space to select, enter to submit)',
 
     envChecking: 'Checking environment...',
     envFound: 'found',
@@ -156,6 +162,7 @@ const messages = {
 
     projectName: 'Project name',
     projectNameRequired: 'Project name is required',
+    projectNameExists: 'Directory already exists, please choose another name',
     frontendName: 'Frontend directory name',
     backendName: 'Backend directory name',
     cloningRepos: 'Cloning repositories...',
@@ -184,6 +191,9 @@ const messages = {
     mqPassword: 'RabbitMQ password',
     serverPort: 'Backend server port',
     webPort: 'Frontend server port',
+    envConfigTitle: 'Configure backend service connections',
+    envConfigHintDocker: '(managed by Docker)',
+    envConfigHintExternal: '(external service)',
 
     initProject: 'Initializing project...',
     initInfra: 'Starting infrastructure',

@@ -48,13 +48,13 @@ export async function pluginCreateAction(options: { project?: string }) {
     description: () => clack.text({ message: t('pluginCreateDescription'), defaultValue: '' }),
     author: () => clack.text({ message: t('pluginCreateAuthor'), defaultValue: '' }),
     tags: () => clack.multiselect({
-      message: t('pluginCreateTags'),
+      message: `${t('pluginCreateTags')} ${chalk.dim(t('multiselectHint'))}`,
       options: VALID_TAGS.map(tag => ({ value: tag, label: tag })),
       initialValues: ['other'],
       required: false,
     }),
     database: () => clack.multiselect({
-      message: t('pluginCreateDatabase'),
+      message: `${t('pluginCreateDatabase')} ${chalk.dim(t('multiselectHint'))}`,
       options: VALID_DATABASES.map(db => ({ value: db, label: db })),
       initialValues: ['mysql', 'postgresql'],
       required: false,

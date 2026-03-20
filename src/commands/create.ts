@@ -146,7 +146,7 @@ async function _createFlow() {
 
     if (shouldInstall) {
       const toInstall = await clack.multiselect({
-        message: t("envSelectInstall"),
+        message: `${t("envSelectInstall")} ${chalk.dim(t("multiselectHint"))}`,
         options: missing.map((m) => ({ value: m.command, label: m.name })),
         initialValues: missing.map((m) => m.command),
       });
@@ -173,7 +173,12 @@ async function _createFlow() {
         clack.text({
           message: t("projectName"),
           placeholder: "my-fba-project",
-          validate: (v) => (!v?.trim() ? t("projectNameRequired") : undefined),
+          validate: (v) => {
+            if (!v?.trim()) return t("projectNameRequired");
+            if (existsSync(join(process.cwd(), v.trim())))
+              return t("projectNameExists");
+            return undefined;
+          },
         }),
       frontendName: () =>
         clack.text({
@@ -225,9 +230,9 @@ async function _createFlow() {
   }
   clack.log.success(t("cloneSuccess"));
 
-  // ─── 基础设施 ───
+  // ─── 基础设施（Docker 安装） ───
   const infraServices = await clack.multiselect({
-    message: t("infraSelect"),
+    message: `${t("infraSelect")} ${chalk.dim(t("multiselectHint"))}`,
     options: [
       { value: "postgres", label: t("infraPostgres"), hint: "Database" },
       { value: "redis", label: t("infraRedis"), hint: "Cache" },
@@ -247,76 +252,119 @@ async function _createFlow() {
     if (!dockerOk) {
       clack.log.warn(chalk.yellow(t("infraDockerFail")));
     } else {
-      // 收集基础设施配置
-      if (infraServices.includes("postgres")) {
-        const dbConfig = await clack.group(
-          {
-            dbHost: () =>
-              clack.text({ message: t("dbHost"), defaultValue: "127.0.0.1" }),
-            dbPort: () =>
-              clack.text({ message: t("dbPort"), defaultValue: "5432" }),
-            dbUser: () =>
-              clack.text({ message: t("dbUser"), defaultValue: "postgres" }),
-            dbPassword: () =>
-              clack.text({ message: t("dbPassword"), defaultValue: "123456" }),
-          },
-          { onCancel: () => onCancel() },
-        );
-        infraConfig.dbHost = dbConfig.dbHost;
-        infraConfig.dbPort = parseInt(dbConfig.dbPort);
-        infraConfig.dbUser = dbConfig.dbUser;
-        infraConfig.dbPassword = dbConfig.dbPassword;
-      }
-
-      if (infraServices.includes("redis")) {
-        const redisConfig = await clack.group(
-          {
-            redisHost: () =>
-              clack.text({
-                message: t("redisHost"),
-                defaultValue: "127.0.0.1",
-              }),
-            redisPort: () =>
-              clack.text({ message: t("redisPort"), defaultValue: "6379" }),
-            redisPassword: () =>
-              clack.text({ message: t("redisPassword"), defaultValue: "" }),
-          },
-          { onCancel: () => onCancel() },
-        );
-        infraConfig.redisHost = redisConfig.redisHost;
-        infraConfig.redisPort = parseInt(redisConfig.redisPort);
-        infraConfig.redisPassword = redisConfig.redisPassword;
-      }
-
-      if (infraServices.includes("rabbitmq")) {
-        const mqConfig = await clack.group(
-          {
-            mqHost: () =>
-              clack.text({ message: t("mqHost"), defaultValue: "127.0.0.1" }),
-            mqPort: () =>
-              clack.text({ message: t("mqPort"), defaultValue: "5672" }),
-            mqManagePort: () =>
-              clack.text({ message: t("mqManagePort"), defaultValue: "15672" }),
-            mqUser: () =>
-              clack.text({ message: t("mqUser"), defaultValue: "guest" }),
-            mqPassword: () =>
-              clack.text({ message: t("mqPassword"), defaultValue: "guest" }),
-          },
-          { onCancel: () => onCancel() },
-        );
-        infraConfig.mqHost = mqConfig.mqHost;
-        infraConfig.mqPort = parseInt(mqConfig.mqPort);
-        infraConfig.mqManagePort = parseInt(mqConfig.mqManagePort);
-        infraConfig.mqUser = mqConfig.mqUser;
-        infraConfig.mqPassword = mqConfig.mqPassword;
-      }
-
-      // 创建 infra 目录
+      // 创建 infra 目录（使用默认配置）
       createInfraDir(projectDir, infraServices, infraConfig);
       _infraDir = join(projectDir, "infra");
       hasInfra = true;
       clack.log.success(`infra/ ✓`);
     }
+  }
+
+  // ─── 服务连接信息配置（始终提示） ───
+  clack.log.step(t("envConfigTitle"));
+
+  // 辅助：根据服务是否由 Docker 管理生成 hint
+  const hint = (service: string) =>
+    infraServices.includes(service)
+      ? chalk.dim(t("envConfigHintDocker"))
+      : chalk.dim(t("envConfigHintExternal"));
+
+  // PostgreSQL 连接配置
+  const dbConfig = await clack.group(
+    {
+      dbHost: () =>
+        clack.text({
+          message: `${t("dbHost")} ${hint("postgres")}`,
+          defaultValue: infraConfig.dbHost,
+        }),
+      dbPort: () =>
+        clack.text({
+          message: `${t("dbPort")} ${hint("postgres")}`,
+          defaultValue: String(infraConfig.dbPort),
+        }),
+      dbUser: () =>
+        clack.text({
+          message: `${t("dbUser")} ${hint("postgres")}`,
+          defaultValue: infraConfig.dbUser,
+        }),
+      dbPassword: () =>
+        clack.text({
+          message: `${t("dbPassword")} ${hint("postgres")}`,
+          defaultValue: infraConfig.dbPassword,
+        }),
+    },
+    { onCancel: () => onCancel() },
+  );
+  infraConfig.dbHost = dbConfig.dbHost;
+  infraConfig.dbPort = parseInt(dbConfig.dbPort);
+  infraConfig.dbUser = dbConfig.dbUser;
+  infraConfig.dbPassword = dbConfig.dbPassword;
+
+  // Redis 连接配置
+  const redisConfig = await clack.group(
+    {
+      redisHost: () =>
+        clack.text({
+          message: `${t("redisHost")} ${hint("redis")}`,
+          defaultValue: infraConfig.redisHost,
+        }),
+      redisPort: () =>
+        clack.text({
+          message: `${t("redisPort")} ${hint("redis")}`,
+          defaultValue: String(infraConfig.redisPort),
+        }),
+      redisPassword: () =>
+        clack.text({
+          message: `${t("redisPassword")} ${hint("redis")}`,
+          defaultValue: infraConfig.redisPassword,
+        }),
+    },
+    { onCancel: () => onCancel() },
+  );
+  infraConfig.redisHost = redisConfig.redisHost;
+  infraConfig.redisPort = parseInt(redisConfig.redisPort);
+  infraConfig.redisPassword = redisConfig.redisPassword;
+
+  // RabbitMQ 连接配置
+  const mqConfig = await clack.group(
+    {
+      mqHost: () =>
+        clack.text({
+          message: `${t("mqHost")} ${hint("rabbitmq")}`,
+          defaultValue: infraConfig.mqHost,
+        }),
+      mqPort: () =>
+        clack.text({
+          message: `${t("mqPort")} ${hint("rabbitmq")}`,
+          defaultValue: String(infraConfig.mqPort),
+        }),
+      mqManagePort: () =>
+        clack.text({
+          message: `${t("mqManagePort")} ${hint("rabbitmq")}`,
+          defaultValue: String(infraConfig.mqManagePort),
+        }),
+      mqUser: () =>
+        clack.text({
+          message: `${t("mqUser")} ${hint("rabbitmq")}`,
+          defaultValue: infraConfig.mqUser,
+        }),
+      mqPassword: () =>
+        clack.text({
+          message: `${t("mqPassword")} ${hint("rabbitmq")}`,
+          defaultValue: infraConfig.mqPassword,
+        }),
+    },
+    { onCancel: () => onCancel() },
+  );
+  infraConfig.mqHost = mqConfig.mqHost;
+  infraConfig.mqPort = parseInt(mqConfig.mqPort);
+  infraConfig.mqManagePort = parseInt(mqConfig.mqManagePort);
+  infraConfig.mqUser = mqConfig.mqUser;
+  infraConfig.mqPassword = mqConfig.mqPassword;
+
+  // 如果有 Docker 基础设施，用最新配置更新 infra 目录
+  if (hasInfra) {
+    createInfraDir(projectDir, infraServices, infraConfig);
   }
 
   // ─── 后端 .env ───
@@ -384,6 +432,7 @@ async function _createFlow() {
   // 2. 前端依赖安装（可选）
   const installFrontend = await clack.confirm({
     message: `${t("initFrontend")}?`,
+    initialValue: false,
   });
   if (!clack.isCancel(installFrontend) && installFrontend) {
     const result = await run("pnpm", ["install"], {
@@ -399,7 +448,8 @@ async function _createFlow() {
   }
 
   // 3. Python 环境（可选）
-  const initPython = await clack.confirm({ message: `${t("initPython")}?` });
+  let pythonReady = false;
+  const initPython = await clack.confirm({ message: `${t("initPython")}?`, initialValue: false });
   if (!clack.isCancel(initPython) && initPython) {
     // uv venv
     let ok = await run("uv", ["venv"], {
@@ -415,24 +465,32 @@ async function _createFlow() {
         label: "uv sync",
       });
     }
-    if (ok.exitCode === 0) {
-      // uv run fba init (交互式，需要用户确认)
-      clack.log.step(t("initFba"));
+    if (ok.exitCode !== 0) {
+      clack.log.warn(chalk.yellow(`${t("initPython")} ${t("initFailed")}`));
+    } else {
+      pythonReady = true;
+    }
+  }
+
+  // 4. 初始化 FBA 服务（依赖 Python 环境就绪）
+  if (pythonReady) {
+    const initFba = await clack.confirm({ message: `${t("initFba")}?`, initialValue: false });
+    if (!clack.isCancel(initFba) && initFba) {
       const fbaInitExit = await runInherited(
         "uv",
         ["run", "fba", "init"],
         backendDir,
       );
-      ok = { stdout: "", stderr: "", exitCode: fbaInitExit };
-    }
-    if (ok.exitCode !== 0) {
-      clack.log.warn(chalk.yellow(`${t("initPython")} ${t("initFailed")}`));
+      if (fbaInitExit !== 0) {
+        clack.log.warn(chalk.yellow(`${t("initFba")} ${t("initFailed")}`));
+      }
     }
   }
 
   // ─── 插件安装 ───
   const installPlugins = await clack.confirm({
     message: t("pluginInstallQuestion"),
+    initialValue: false,
   });
   if (!clack.isCancel(installPlugins) && installPlugins) {
     // 延迟导入插件市场功能

@@ -19,7 +19,7 @@ export async function pluginRemoveAction(options: { project?: string }) {
 
   // 选择要移除的插件
   const toRemove = await clack.multiselect({
-    message: t('pluginRemoveConfirm'),
+    message: `${t('pluginRemoveConfirm')} ${chalk.dim(t('multiselectHint'))}`,
     options: plugins.map((p, i) => ({
       value: i,
       label: `${p.info.summary || p.name}`,
