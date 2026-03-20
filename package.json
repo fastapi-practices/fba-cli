@@ -5,6 +5,9 @@
   "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/fastapi-practices/fba-cli#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fastapi-practices/fba-cli.git"
