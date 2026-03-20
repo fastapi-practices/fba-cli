@@ -104,16 +104,30 @@ export async function checkCommand(cmd: string, versionArgs: string[] = ['--vers
 
 /**
  * 在指定目录执行命令并透传 stdio
+ *
+ * Windows 兼容：在 spawn 前将 stdin 从 raw mode 恢复为正常模式，
+ * 否则子进程读取 stdin 时会与 Node（clack）争抢 console handle 导致卡死。
  */
 export async function runInherited(
   cmd: string,
   args: string[] = [],
   cwd?: string,
 ): Promise<number> {
+  // 保存 stdin 的 raw mode 状态，并恢复为正常模式
+  const wasRaw = process.stdin.isRaw
+  if (wasRaw && process.stdin.isTTY) {
+    process.stdin.setRawMode(false)
+  }
+
   try {
     const result = await execa(cmd, args, { cwd, stdio: 'inherit', reject: false })
     return result.exitCode ?? 1
   } catch {
     return 1
+  } finally {
+    // 恢复 stdin raw mode 状态
+    if (wasRaw && process.stdin.isTTY) {
+      process.stdin.setRawMode(true)
+    }
   }
 }
