@@ -6,6 +6,8 @@ export interface GlobalConfig {
   current: string | null
   projects: ProjectEntry[]
   shell?: string                    // 自定义 shell (fba go)
+  npmRegistry?: string              // npm/pnpm 镜像源 URL
+  pypiRegistry?: string             // PyPI 镜像源 URL
 }
 
 export interface ProjectEntry {

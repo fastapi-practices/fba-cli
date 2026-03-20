@@ -11,7 +11,11 @@ import {
   addProject,
   writeProjectConfig,
 } from "../lib/config.js";
-import { checkEnvironment, getMissingTools } from "../lib/env-check.js";
+import {
+  checkEnvironment,
+  getMissingTools,
+  getMissingRequiredTools,
+} from "../lib/env-check.js";
 import { installTool } from "../lib/env-install.js";
 import { gitClone } from "../lib/git.js";
 import { isDockerAvailable, composeUp, composeDown } from "../lib/docker.js";
@@ -28,6 +32,13 @@ import {
 } from "../templates/backend.env.js";
 import { run, runInherited } from "../lib/process.js";
 import type { ProjectConfig } from "../types/config.js";
+import {
+  NPM_REGISTRIES,
+  PYPI_REGISTRIES,
+  getRegistryLabel,
+  selectNpmRegistry,
+  selectPypiRegistry,
+} from "../lib/registry.js";
 
 const BACKEND_REPO =
   "https://github.com/fastapi-practices/fastapi-best-architecture.git";
@@ -54,7 +65,7 @@ function normalizeProjectRootInput(value?: string): string {
 
 async function cleanup() {
   if (!_cleanupDir) return;
-  console.log(chalk.yellow(`\n\n  ⟲ ${t('rollingBack')} ${_cleanupDir}`));
+  console.log(chalk.yellow(`\n\n  ⟲ ${t("rollingBack")} ${_cleanupDir}`));
 
   // 先尝试停止 docker compose
   if (_infraDir && existsSync(_infraDir)) {
@@ -68,10 +79,10 @@ async function cleanup() {
   // 删除项目目录
   try {
     rmSync(_cleanupDir, { recursive: true, force: true });
-    console.log(chalk.green(`  ✓ ${t('cleanupComplete')}\n`));
+    console.log(chalk.green(`  ✓ ${t("cleanupComplete")}\n`));
   } catch (e: any) {
-    console.error(chalk.red(`  ✗ ${t('cleanupFailed')}: ${e.message}`));
-    console.error(chalk.dim(`    ${t('manualRemoveHint')} ${_cleanupDir}\n`));
+    console.error(chalk.red(`  ✗ ${t("cleanupFailed")}: ${e.message}`));
+    console.error(chalk.dim(`    ${t("manualRemoveHint")} ${_cleanupDir}\n`));
   }
 
   _cleanupDir = null;
@@ -84,7 +95,12 @@ function onCancel(): never {
   process.exit(0);
 }
 
-function formatEnvCheckStatus(check: { name: string; command: string; found: boolean; version?: string }) {
+function formatEnvCheckStatus(check: {
+  name: string;
+  command: string;
+  found: boolean;
+  version?: string;
+}) {
   if (!check.found) {
     return chalk.red(`✗ ${check.name} ${t("envNotFound")}`);
   }
@@ -95,11 +111,15 @@ function formatEnvCheckStatus(check: { name: string; command: string; found: boo
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
 
-  const displayVersion = prefixes.some((prefix) => loweredVersion.startsWith(`${prefix} `))
+  const displayVersion = prefixes.some((prefix) =>
+    loweredVersion.startsWith(`${prefix} `),
+  )
     ? rawVersion.slice(rawVersion.indexOf(" ") + 1).trim()
     : rawVersion;
 
-  return chalk.green(`✓ ${check.name}${displayVersion ? ` ${displayVersion}` : ""}`);
+  return chalk.green(
+    `✓ ${check.name}${displayVersion ? ` ${displayVersion}` : ""}`,
+  );
 }
 
 export async function createAction() {
@@ -149,6 +169,35 @@ async function _createFlow() {
 
   clack.log.info(chalk.bold(t("welcome")));
 
+  // ─── 源选择（首次或未配置时引导） ───
+  {
+    const gCfg = readGlobalConfig();
+    let needWrite = false;
+
+    if (!gCfg.npmRegistry) {
+      clack.log.step(t("registrySetupTitle"));
+      const npmUrl = await selectNpmRegistry();
+      if (clack.isCancel(npmUrl)) onCancel();
+      gCfg.npmRegistry = npmUrl as string;
+      needWrite = true;
+    }
+
+    if (!gCfg.pypiRegistry) {
+      if (!needWrite) clack.log.step(t("registrySetupTitle"));
+      const pypiUrl = await selectPypiRegistry();
+      if (clack.isCancel(pypiUrl)) onCancel();
+      gCfg.pypiRegistry = pypiUrl as string;
+      needWrite = true;
+    }
+
+    if (needWrite) {
+      writeGlobalConfig(gCfg);
+      clack.log.success(
+        `npm: ${getRegistryLabel(NPM_REGISTRIES, gCfg.npmRegistry)}  |  PyPI: ${getRegistryLabel(PYPI_REGISTRIES, gCfg.pypiRegistry)}`,
+      );
+    }
+  }
+
   // ─── 环境检测 ───
   const envSpinner = clack.spinner();
   envSpinner.start(t("envChecking"));
@@ -157,10 +206,27 @@ async function _createFlow() {
 
   // 输出检测结果
   for (const [, check] of Object.entries(envSummary)) {
-    clack.log.info(formatEnvCheckStatus(check));
+    const tag = check.required
+      ? chalk.yellow(`(${t("envRequired")})`)
+      : chalk.dim(`(${t("envOptional")})`);
+    const status = check.found
+      ? chalk.green(`✓ ${check.name} ${check.version ?? ""}`) + ` ${tag}`
+      : chalk.red(`✗ ${check.name} ${t("envNotFound")}`) + ` ${tag}`;
+    clack.log.info(status);
   }
 
-  // 处理缺失工具
+  // 检查必须工具是否缺失
+  const missingRequired = getMissingRequiredTools(envSummary);
+  if (missingRequired.length > 0) {
+    clack.log.error(
+      chalk.red(
+        `${missingRequired.map((m) => m.name).join(", ")} ${t("envRequired")}`,
+      ),
+    );
+    process.exit(1);
+  }
+
+  // 处理缺失的可选工具
   const missing = getMissingTools(envSummary);
   if (missing.length > 0) {
     const shouldInstall = await clack.confirm({ message: t("envMissing") });
@@ -217,7 +283,9 @@ async function _createFlow() {
           placeholder: "my-fba-project",
           validate: (v) => {
             if (!v?.trim()) return t("projectNameRequired");
-            const projectRoot = normalizeProjectRootInput(results.projectRoot as string | undefined);
+            const projectRoot = normalizeProjectRootInput(
+              results.projectRoot as string | undefined,
+            );
             if (existsSync(join(projectRoot, v.trim())))
               return t("projectNameExists");
             return undefined;
@@ -260,10 +328,10 @@ async function _createFlow() {
   const frontendDir = join(projectDir, frontendName);
 
   const backendCloned = await gitClone(BACKEND_REPO, backendDir, {
-    label: `${t('labelBackend')} → ${backendName}`,
+    label: `${t("labelBackend")} → ${backendName}`,
   });
   const frontendCloned = await gitClone(FRONTEND_REPO, frontendDir, {
-    label: `${t('labelFrontend')} → ${frontendName}`,
+    label: `${t("labelFrontend")} → ${frontendName}`,
   });
 
   if (!backendCloned || !frontendCloned) {
@@ -279,10 +347,10 @@ async function _createFlow() {
 
   // ─── 数据库类型选择（始终需要，用于后端 .env 配置） ───
   const dbTypeChoice = await clack.select({
-    message: t('dbTypeSelect'),
+    message: t("dbTypeSelect"),
     options: [
-      { value: 'postgresql', label: t('infraPostgres') },
-      { value: 'mysql', label: t('infraMysql') },
+      { value: "postgresql", label: t("infraPostgres") },
+      { value: "mysql", label: t("infraMysql") },
     ],
   });
   if (clack.isCancel(dbTypeChoice)) onCancel();
@@ -302,11 +370,20 @@ async function _createFlow() {
     clack.log.warn(chalk.yellow(t("infraDockerFail")));
   } else {
     const infraSelection = await clack.multiselect({
-      message: `${t("infraSelect")} ${chalk.dim(t("multiselectHint"))}`,
+      message: `${t("infraSelect")} ${chalk.dim(`(${t("envOptional")})`)} ${chalk.dim(t("multiselectHint"))}`,
       options: [
-        { value: "database", label: selectedDbType === 'mysql' ? t("infraMysql") : t("infraPostgres"), hint: t("hintDatabase") },
+        {
+          value: "database",
+          label:
+            selectedDbType === "mysql" ? t("infraMysql") : t("infraPostgres"),
+          hint: t("hintDatabase"),
+        },
         { value: "redis", label: t("infraRedis"), hint: t("hintCache") },
-        { value: "rabbitmq", label: t("infraRabbitmq"), hint: t("hintMessageQueue") },
+        {
+          value: "rabbitmq",
+          label: t("infraRabbitmq"),
+          hint: t("hintMessageQueue"),
+        },
       ],
       initialValues: ["database", "redis", "rabbitmq"],
       required: false,
@@ -315,7 +392,8 @@ async function _createFlow() {
 
     // 将 'database' 替换为实际的服务名 ('postgres' | 'mysql')
     infraServices = infraSelection.map((s: string) => {
-      if (s === 'database') return selectedDbType === 'mysql' ? 'mysql' : 'postgres';
+      if (s === "database")
+        return selectedDbType === "mysql" ? "mysql" : "postgres";
       return s;
     });
 
@@ -332,7 +410,7 @@ async function _createFlow() {
   clack.log.step(t("envConfigTitle"));
 
   // 辅助：根据服务是否由 Docker 管理生成 hint
-  const dbServiceName = selectedDbType === 'mysql' ? 'mysql' : 'postgres';
+  const dbServiceName = selectedDbType === "mysql" ? "mysql" : "postgres";
   const hint = (service: string) =>
     infraServices.includes(service)
       ? chalk.dim(t("envConfigHintDocker"))
@@ -505,7 +583,15 @@ async function _createFlow() {
     initialValue: false,
   });
   if (!clack.isCancel(installFrontend) && installFrontend) {
-    const result = await run("pnpm", ["install"], {
+    const pnpmArgs = ["install"];
+    const gCfgPnpm = readGlobalConfig();
+    if (
+      gCfgPnpm.npmRegistry &&
+      gCfgPnpm.npmRegistry !== "https://registry.npmjs.org"
+    ) {
+      pnpmArgs.push("--registry", gCfgPnpm.npmRegistry);
+    }
+    const result = await run("pnpm", pnpmArgs, {
       cwd: frontendDir,
       spinner: true,
       label: t("initFrontend"),
@@ -519,8 +605,19 @@ async function _createFlow() {
 
   // 3. Python 环境（可选）
   let pythonReady = false;
-  const initPython = await clack.confirm({ message: `${t("initPython")}?`, initialValue: false });
+  const initPython = await clack.confirm({
+    message: `${t("initPython")}?`,
+    initialValue: false,
+  });
   if (!clack.isCancel(initPython) && initPython) {
+    const gCfgUv = readGlobalConfig();
+    const uvExtra: string[] = [];
+    if (
+      gCfgUv.pypiRegistry &&
+      gCfgUv.pypiRegistry !== "https://pypi.org/simple"
+    ) {
+      uvExtra.push("--index-url", gCfgUv.pypiRegistry);
+    }
     // uv venv
     let ok = await run("uv", ["venv"], {
       cwd: backendDir,
@@ -529,7 +626,7 @@ async function _createFlow() {
     });
     if (ok.exitCode === 0) {
       // uv sync
-      ok = await run("uv", ["sync"], {
+      ok = await run("uv", ["sync", ...uvExtra], {
         cwd: backendDir,
         spinner: true,
         label: "uv sync",
@@ -544,7 +641,10 @@ async function _createFlow() {
 
   // 4. 初始化 FBA 服务（依赖 Python 环境就绪）
   if (pythonReady) {
-    const initFba = await clack.confirm({ message: `${t("initFba")}?`, initialValue: false });
+    const initFba = await clack.confirm({
+      message: `${t("initFba")}?`,
+      initialValue: false,
+    });
     if (!clack.isCancel(initFba) && initFba) {
       const fbaInitExit = await runInherited(
         "uv",
@@ -585,7 +685,7 @@ async function _createFlow() {
     ].join("\n"),
     t("nextSteps"),
   );
-  clack.outro(chalk.cyan(t('happyCoding')));
+  clack.outro(chalk.cyan(t("happyCoding")));
 
   // 创建成功，不再需要回退
   _cleanupDir = null;

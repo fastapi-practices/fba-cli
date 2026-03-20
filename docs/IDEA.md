@@ -1,124 +1,192 @@
+# FBA CLI 工具设计文档
+
 ## 介绍
 
-我想要实现一个cli工具，用于创建、管理、配置和运行fastapi-best-architecture
+实现一个 CLI 工具，用于创建、管理、配置和运行 fastapi-best-architecture 项目。
 
 ## 功能描述
 
-提供简单的tui工具，用于管理
-初次使用创建~/.fba.json，用于存储一些基本信息
-初次使用，先选择语言
-命令启动，默认读取~/.fba.json，没有创建，则标志着第一次使用
-除create外，所有的命令启动，在没有指定-p的时候，都使用全局中的current所指向的项目目录
+提供简单的 TUI 工具用于项目管理。
 
-### 默认行为为create
+- 初次使用时创建 `~/.fba.json`，用于存储基本信息
+- 初次使用时，先选择界面语言
+- 命令启动时默认读取 `~/.fba.json`；若文件不存在则视为首次使用
+- 除 `create` 命令外，所有命令在未指定 `-p` 参数时，均使用全局配置 `current` 所指向的项目目录
 
-- 进入输出FAB assics 字符 logo和介绍，欢迎语，回车开始检测环境
-- 检测环境主要有：python，pnpm，uv，npm
-- 缺失询问是否进入环境安装
-  - 确认后，选择安装缺失的环境，默认all
-- 然后输入项目名称
-- 前端文件夹名，留空默认仓库名
-- 后端文件夹名，留空默认仓库名
+---
+
+## 命令详情
+
+### create（默认行为）
+
+#### 1. 欢迎与环境检测
+
+- 输出 FBA ASCII 字符 Logo、介绍及欢迎语，按回车开始检测环境
+- 检测项目：`python`、`pnpm`、`uv`、`npm`
+- 若有缺失，询问是否进入环境安装
+  - 确认后，选择安装缺失的环境（默认选中全部）
+
+#### 2. 项目配置
+
+- 输入项目名称
+- 输入前端文件夹名（留空则使用仓库默认名）
+- 输入后端文件夹名（留空则使用仓库默认名）
 - 创建项目文件夹
-- 克隆项目(如果指定了前后端文件夹名则使用前后端文件夹名)
-- 是否创建开发环境(redis，postgres, rabitmq，每个项目都是可选(多选项)，默认all)
-  - 是则检测docker 环境是否正常
-    - 正常下一步
-    - 否则提示信息，跳出创建生成环境这一步
-  - 环境正常后开始创建，本环节所有输入信息都先记录，后面需要写入env
-    - 需要输入一些redis，postgres的基本选项，留空使用默认
-    - 输入完毕后，创建infra目录
-    - copy 或创建设施docker compose文件(基于选取的服务)，并写入前面的配置内容到.env
-- 然后是一些基本配置项目(postgres，redis如果上面进行了设置，则基础，不用输入)
-  # Database
-  DATABASE_TYPE='postgresql'
-  DATABASE_HOST='127.0.0.1'
-  DATABASE_PORT=5432
-  DATABASE_USER='postgres'
-  DATABASE_PASSWORD='123456'
-  # Redis
-  REDIS_HOST='127.0.0.1'
-  REDIS_PORT=6379
-  REDIS_PASSWORD=''
-  REDIS_DATABASE=0
-  # Token
-  TOKEN_SECRET_KEY='1VkVF75nsNABBjK_7-qz7GtzNy3AMvktc9TCPwKczCk'
-  # [ App ] task
-  # Celery
-  CELERY_BROKER_REDIS_DATABASE=1
-  # Rabbitmq
-  CELERY_RABBITMQ_HOST='127.0.0.1'
-  CELERY_RABBITMQ_PORT=5672
-  CELERY_RABBITMQ_USERNAME='guest'
-  CELERY_RABBITMQ_PASSWORD='guest'
-- 将设置写入到.env
-  - env在：项目目录/后端文件夹/backend/.env
-- 项目运行配置
-  - 前端端口(写入前端.env.devploment), 地址：项目目录/前端文件夹/apps/web-antdv-next/.env.development
-  - 后端端口(写入项目配置: 项目目录/.fba.json)
-- 写入基本信息到项目配置，比如：前后端地址
-- 开始准备初始化项目，输出提示
-  - 启动开发设施(将cwd切换到：项目目录/infra/，使用docker compose up -d 启动，启动失败退出), 需要有进度动画
-- 初始化前端环境(可选)
-  - cwd切换到前端目录，执行pnpm i (进度展示)，失败退出到下一步
-- 初始换python环境(可选)(失败进行到下一步)
-  - cwd切换到后端目录，使用uv创建.venv虚拟环境
-  - uv sync同步依赖
-  - uv fab init：初始化项目
+- 克隆前后端仓库（若指定了文件夹名则使用对应名称）
 
-- 安装第三方插件(是/否)
-  - 请求插件市场：https://raw.githubusercontent.com/fastapi-practices/plugins/refs/heads/master/plugins-data.ts，解析插件列表
-  - 列出插件列表(支持搜索，过滤)
-  - 选择插件
-  - 安装，前端插件自行实现安装逻辑，后端插件调用uv fab add(所以后端插件必须后端项目环境初始化成功才行)
+#### 3. 开发设施配置（可选）
 
-- 所有结束，输出提示，安装成功
-- 并将项目目录写入到全局.fab.json，如果是第一个项目的话，就设为默认项目(决定以后的直接启动等功能)
+可选服务：`Redis`、`PostgreSQL`、`RabbitMQ`（多选，默认全选）
+
+- **选择"是"**：
+  1. 检测 Docker 环境是否正常
+     - 正常 → 进入下一步
+     - 异常 → 输出提示，跳过本步骤
+  2. 环境正常后，输入各服务基本配置（留空使用默认值），输入内容暂存，后续写入 `.env`
+  3. 创建 `infra` 目录
+  4. 复制或创建基础设施 `docker-compose` 文件（根据所选服务生成），并将配置写入 `.env`
+
+#### 4. 基本配置项
+
+若上一步已配置 PostgreSQL / Redis，对应项无需重复输入。
+
+```env
+# Database
+DATABASE_TYPE='postgresql'
+DATABASE_HOST='127.0.0.1'
+DATABASE_PORT=5432
+DATABASE_USER='postgres'
+DATABASE_PASSWORD='123456'
+
+# Redis
+REDIS_HOST='127.0.0.1'
+REDIS_PORT=6379
+REDIS_PASSWORD=''
+REDIS_DATABASE=0
+
+# Token
+TOKEN_SECRET_KEY='1VkVF75nsNABBjK_7-qz7GtzNy3AMvktc9TCPwKczCk'
+
+# Celery
+CELERY_BROKER_REDIS_DATABASE=1
+
+# RabbitMQ
+CELERY_RABBITMQ_HOST='127.0.0.1'
+CELERY_RABBITMQ_PORT=5672
+CELERY_RABBITMQ_USERNAME='guest'
+CELERY_RABBITMQ_PASSWORD='guest'
+```
+
+- 配置写入路径：`{项目目录}/{后端文件夹名}/backend/.env`
+
+#### 5. 运行配置
+
+- 前端端口：写入 `{项目目录}/{前端文件夹名}/apps/web-antdv-next/.env.development`
+- 后端端口：写入 `{项目目录}/.fba.json` 中的 `server_port` 字段
+- 将前后端地址等基本信息写入项目配置文件
+
+#### 6. 项目初始化
+
+输出提示，开始初始化：
+
+1. **启动开发设施**（若已配置 infra）
+   - 切换 `cwd` 至 `{项目目录}/infra/`
+   - 执行 `docker compose up -d`，展示进度动画
+   - 启动失败则退出
+
+2. **初始化前端环境**（可选）
+   - 切换 `cwd` 至前端目录
+   - 执行 `pnpm i`（展示进度），失败则跳至下一步
+
+3. **初始化 Python 环境**（可选，失败则跳至下一步）
+   - 切换 `cwd` 至后端目录
+   - 使用 `uv` 创建 `.venv` 虚拟环境
+   - 执行 `uv sync` 同步依赖
+   - 执行 `uv run fba init` 初始化项目
+
+#### 7. 安装第三方插件（是/否）
+
+- 请求插件市场数据：
+  `https://raw.githubusercontent.com/fastapi-practices/plugins/refs/heads/master/plugins-data.ts`
+- 解析并列出插件列表（支持搜索、过滤）
+- 选择目标插件并安装
+  - 前端插件：执行对应安装逻辑
+  - 后端插件：调用 `uv run fba add`（需后端环境初始化成功）
+
+#### 8. 完成
+
+- 输出安装成功提示
+- 将项目目录写入全局 `~/.fba.json`；若为第一个项目，则自动设为默认项目
+
+---
 
 ### dev
 
-描述：用于启动服务
-参数：
-[--host HOST] 提供服务的主机 IP 地址，对于本地开发，请使用 127.0.0.1。要启用公共访问，例如在局域网中，请使用 0.0.0.0 (Default: 127.0.0.1)
-[--port PORT] 提供服务的主机端口号 (Default: 8000)
-[--no-reload] 禁用在（代码）文件更改时自动重新加载服务器 (Default: False)
-[--workers WORKERS] 使用多个工作进程，必须与 --no-reload 同时使用 (Default: 1)
-默认port使用项目目录下.fab.json中的server_port
-如果有infra(开发设施的话)，启动前需要检查设施是否启动，设施目录在：项目目录/infra
-项目后端目录为项目目录+ 项目目录下的.fba.json中的backend_name
-执行：然后切换cwd到项目后端目录，调用uv run fba run 传递参数(其他参数在没有传的时候这里也不传，但是--port必须传)
+**描述**：启动后端 API 服务
+
+**参数**：
+
+| 参数                | 说明                                                             | 默认值      |
+| ------------------- | ---------------------------------------------------------------- | ----------- |
+| `--host HOST`       | 服务监听地址。本地开发用 `127.0.0.1`，局域网访问用 `0.0.0.0`     | `127.0.0.1` |
+| `--port PORT`       | 服务监听端口，默认读取 `{项目目录}/.fba.json` 中的 `server_port` | `8000`      |
+| `--no-reload`       | 禁用代码变更时自动重载                                           | `false`     |
+| `--workers WORKERS` | 工作进程数，须与 `--no-reload` 同时使用                          | `1`         |
+
+**执行逻辑**：
+
+1. 若项目存在 `infra`，启动前检查开发设施（`{项目目录}/infra`）是否已运行
+2. 切换 `cwd` 至 `{项目目录}/{backend_name}`
+3. 执行 `uv run fba run`，透传相关参数（`--port` 必传，其他参数未传则不传递）
+
+---
 
 ### dev:web
 
-描述：用于启动web服务
-参数：
---host 提供服务的主机 IP 地址，对于本地开发，请使用 127.0.0.1。要启用公共访问，例如在局域网中，请使用 0.0.0.0 (Default: 127.0.0.1)
---port 提供服务的主机端口号 (Default: ENV)
+**描述**：启动前端 Web 服务
 
-项目前端目录为项目目录+ 项目目录下的.fba.json中的frontend_name
-执行：然后cwd切换到项目前端目录
+**参数**：
+
+| 参数          | 说明         | 默认值           |
+| ------------- | ------------ | ---------------- |
+| `--host HOST` | 服务监听地址 | `127.0.0.1`      |
+| `--port PORT` | 服务监听端口 | 读取 `.env` 文件 |
+
+**执行逻辑**：
+
+切换 `cwd` 至 `{项目目录}/{frontend_name}`，执行对应启动命令。
+
+---
 
 ### dev:celery
 
-描述：用于启动celery服务
-参数：
-worker 从当前主机启动 Celery worker 服务
-beat 从当前主机启动 Celery beat 服务  
- flower 从当前主机启动 Celery flower 服务
+**描述**：启动 Celery 相关服务
 
-项目后端目录为项目目录+ 项目目录下的.fba.json中的backend_name
-执行：然后切换cwd到项目后端目录，调用uv run fba celery [subcommand]
+**子命令**：
+
+| 子命令   | 说明                    |
+| -------- | ----------------------- |
+| `worker` | 启动 Celery Worker 服务 |
+| `beat`   | 启动 Celery Beat 服务   |
+| `flower` | 启动 Celery Flower 服务 |
+
+**执行逻辑**：
+
+切换 `cwd` 至 `{项目目录}/{backend_name}`，执行 `uv run fba celery [subcommand]`。
+
+---
 
 ### plugin
 
-插件管理
-支持插件市场
+插件管理命令，支持插件市场。
 
 #### 插件市场
 
-读取：https://raw.githubusercontent.com/fastapi-practices/plugins/refs/heads/master/plugins-data.ts
+**数据源**：`https://raw.githubusercontent.com/fastapi-practices/plugins/refs/heads/master/plugins-data.ts`
 
-````ts
+数据结构如下：
+
+```ts
 export const validTags = [
   "ai",
   "mcp",
@@ -128,361 +196,212 @@ export const validTags = [
   "notification",
   "task",
   "payment",
-  "other"
-] as const
+  "other",
+] as const;
 
-export const validDatabases = [
-  "mysql",
-  "postgresql"
-] as const
+export const validDatabases = ["mysql", "postgresql"] as const;
 
 // 插件类型：web 前端插件 / server 后端插件
-export const validTypes = [
-  "web",
-  "server"
-] as const
+export const validTypes = ["web", "server"] as const;
 
-export type ValidTag = typeof validTags[number]
-export type ValidDatabase = typeof validDatabases[number]
-export type ValidType = typeof validTypes[number]
+export type ValidTag = (typeof validTags)[number];
+export type ValidDatabase = (typeof validDatabases)[number];
+export type ValidType = (typeof validTypes)[number];
 
 export interface PluginTomlPlugin {
-  icon: string
-  summary: string
-  version: string
-  description: string
-  author: string
-  type: ValidType
-  tags?: ValidTag[]
-  database?: ValidDatabase[]
+  icon: string;
+  summary: string;
+  version: string;
+  description: string;
+  author: string;
+  type: ValidType;
+  tags?: ValidTag[];
+  database?: ValidDatabase[];
 }
 
 export interface GitModule {
-  path: string
-  url: string
-  branch: string
+  path: string;
+  url: string;
+  branch: string;
 }
 
 export interface PluginData {
-  plugin: PluginTomlPlugin
-  git: GitModule
+  plugin: PluginTomlPlugin;
+  git: GitModule;
 }
 
 export const pluginDataList: PluginData[] = [
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "AI 工具",
-      "version": "0.0.1",
-      "description": "为系统提供 AI 赋能",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["ai", "mcp"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/ai",
-      "url": "https://github.com/fastapi-practices/ai.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "API Key",
-      "version": "0.0.1",
-      "description": "用户自定义 API Key 管理，支持生成、管理和使用 API Key 进行接口认证",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["auth"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/api_key",
-      "url": "https://github.com/fastapi-practices/api_key.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "API Key UI",
-      "version": "0.0.1",
-      "description": "API Key 前端管理插件，提供列表、搜索、新增、编辑、启停与复制能力",
-      "author": "yzbf-lin",
-      "type": "web",
-      "tags": ["auth"]
-    },
-    "git": {
-      "path": "plugins/api_key_ui",
-      "url": "https://github.com/yzbf-lin/api_key_ui.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "Casbin RBAC",
-      "version": "0.0.1",
-      "description": "基于 Casbin 实现的 RBAC 访问控制",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["auth"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/casbin_rbac",
-      "url": "https://github.com/fastapi-practices/casbin_rbac.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "Casdoor SSO",
-      "version": "0.0.3",
-      "description": "通过 Casdoor 实现 SSO 单点登录集成",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["auth"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/casdoor_sso",
-      "url": "https://github.com/fastapi-practices/casdoor_sso.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "LDAP",
-      "version": "0.0.1",
-      "description": "通过 LDAP 的方式登录系统",
-      "author": "DAVID",
-      "type": "web"
-    },
-    "git": {
-      "path": "plugins/ldap_auth",
-      "url": "https://github.com/dividduang/ldap_auth.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "MCP",
-      "version": "0.0.3",
-      "description": "MCP 服务器管理",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["ai", "mcp"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/mcp",
-      "url": "https://github.com/fastapi-practices/mcp.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "OSS",
-      "version": "0.0.5",
-      "description": "阿里云 OSS 文件上传",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["storage"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/oss",
-      "url": "https://github.com/fastapi-practices/oss.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "S3",
-      "version": "0.0.1",
-      "description": "提供兼容 S3 协议的对象存储能力",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["storage"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/s3",
-      "url": "https://github.com/fastapi-practices/s3.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "腾讯云短信服务",
-      "version": "0.0.2",
-      "description": "使用腾讯云短信服务发送短信验证码",
-      "author": "ranyong",
-      "type": "web"
-    },
-    "git": {
-      "path": "plugins/sms",
-      "url": "https://github.com/RanY-Luck/sms.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "Task",
-      "version": "0.0.1",
-      "description": "基于 taskiq 的异步任务队列插件",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["task"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/task",
-      "url": "https://github.com/fastapi-practices/task.git",
-      "branch": "master"
-    }
-  },
-  {
-    "plugin": {
-      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
-      "summary": "多租户",
-      "version": "0.0.1",
-      "description": "为系统提供多租户能力，包括租户管理、套餐管理、行级数据隔离",
-      "author": "wu-clan",
-      "type": "web",
-      "tags": ["other"],
-      "database": ["mysql", "postgresql"]
-    },
-    "git": {
-      "path": "plugins/tenant",
-      "url": "https://github.com/fastapi-practices/tenant.git",
-      "branch": "master"
-    }
-  }
-]
+  // ... 插件数据列表
+];
 ```
 
-解析上面的结构，列出插件市场，并支持搜索，过滤
+解析以上数据结构，在 TUI 中展示插件市场列表，并支持关键字搜索与标签过滤。
+
+---
 
 #### plugin add
-介绍：添加插件，前后端插件使用不同的逻辑
-- 不加参数
-  进入则先进入插件市场，选择安装的插件
-- 参数
-  -b/f 前端插件还是后端插件，必填
-  重新格式化命令行选项，移除方括号并调整间距。重新格式化命令行选项，移除方括号并调整间距。-b/f 前端插件还是后端插件，必填
-  --path PATH          ZIP 插件的本地完整路径
-  --repo-url REPO_URL  Git 插件的仓库地址
-  --no-sql             禁用插件 SQL 脚本自动执行 (Default: False) 后端专用
-  --db-type DB_TYPE    执行插件 SQL 脚本的数据库类型 Valid options: mysql, postgresql. (Default: postgresql) 后端插件专用
-  --pk-type PK_TYPE    执行插件 SQL 脚本数据库主键类型 Valid options: autoincrement, snowflake. (Default: autoincrement) 后端专用
-- 插件安装逻辑
-  - 前端插件
-    前端插件目录在，项目目录/前端名称/apps/web-antdv-next/src/plugins
-    前端插件安装逻辑则为，如果是仓库的话(插件市场都是仓库)，就直接拉取到plugins
-    如果是zip，则解压到对应位置
-    如果安装的插件中有前端插件，则询问用户是否执行pnpm i 安装依赖(因为使用的pnpm-workspace，所以只要在项目目录/前端名称的目录执行即可)
-  - 后端插件
-    从插件市场获取的，需要自行提取参数。
-    然后，cwd切换到项目目录/后端目录。执行 uv fba add ...参数。参数同前面提到的参数，如果有直接透传
-  - 直接命令安装，则每次安装一个，按照参数填写即可，通过-b / -f决定安装类型和逻辑
-  - 插件市场安装，可以安装多个，前后端逻辑从插件信息中提取(type)
+
+**描述**：添加插件，前后端插件使用不同安装逻辑
+
+**无参数时**：进入插件市场 TUI，选择要安装的插件
+
+**参数列表**：
+
+| 参数                  | 说明                                                                             | 备注     |
+| --------------------- | -------------------------------------------------------------------------------- | -------- |
+| `-b` / `-f`           | 指定后端插件 / 前端插件                                                          | **必填** |
+| `--path PATH`         | ZIP 插件的本地完整路径                                                           |          |
+| `--repo-url REPO_URL` | Git 插件的仓库地址                                                               |          |
+| `--no-sql`            | 禁用插件 SQL 脚本自动执行（Default: `false`）                                    | 后端专用 |
+| `--db-type DB_TYPE`   | SQL 脚本数据库类型，可选：`mysql`、`postgresql`（Default: `postgresql`）         | 后端专用 |
+| `--pk-type PK_TYPE`   | SQL 脚本主键类型，可选：`autoincrement`、`snowflake`（Default: `autoincrement`） | 后端专用 |
+
+**安装逻辑**：
+
+- **前端插件**
+  - 插件目录：`{项目目录}/{frontend_name}/apps/web-antdv-next/src/plugins`
+  - Git 仓库插件：直接克隆至 `plugins` 目录
+  - ZIP 插件：解压至对应目录
+  - 安装完成后，询问是否执行 `pnpm i` 安装依赖（在 `{项目目录}/{frontend_name}` 下执行即可，pnpm-workspace 会自动处理）
+
+- **后端插件**
+  - 从插件市场获取的插件需提取对应参数
+  - 切换 `cwd` 至 `{项目目录}/{backend_name}`
+  - 执行 `uv run fba add ...`（参数直接透传）
+
+- **直接命令安装**：每次安装一个插件，通过 `-b` / `-f` 决定安装类型与逻辑
+
+- **插件市场安装**：支持批量选择，前后端类型从插件信息的 `type` 字段中提取
+
+---
 
 #### plugin remove
-描述：移除插件
-须实现自动获取插件列表，注意：插件包含plugin.toml(前后端)
-选择需要移除的插件(前后端)
-然后移除(直接删除，需要确认)
-如果移除了前端插件，需要询问用户是否通过pnpm i来移除依赖
-后端插件通过在项目后端目录执行: uv run fba remove来实现
+
+**描述**：移除插件
+
+**逻辑**：
+
+1. 自动扫描插件目录，获取已安装插件列表（前后端插件均包含 `plugin.toml`）
+2. 展示可选列表，选择要移除的插件
+3. 二次确认后直接删除
+4. 若移除了前端插件，询问是否执行 `pnpm i` 同步依赖
+5. 后端插件在项目后端目录执行 `uv run fba remove` 移除
+
+---
 
 #### plugin create
-描述：创建插件(当前项目)
-- 1: 选择插件类型(web/server/all，all代码前后端都创建(因为有些插件是前后端相互依赖的))
-- 2: 如果选择server/all的话，则需要询问server插件类型：应用级插件和扩展级插件
-- 3: 输入名称
-- 4: 输入插件信息，信息使用toml配置，如下：
-  ```toml
-  # 插件信息
-  [plugin]
-  # 图标（插件仓库内的图标路径或图标链接地址）
-  icon = 'assets/icon.svg'
-  # 摘要（简短描述）
-  summary = ''
-  # 版本号
-  version = ''
-  # 描述
-  description = ''
-  # 作者
-  author = ''
-  # 标签
-  # 当前支持：ai、mcp、agent、auth、storage、notification、task、payment、other
-  tags = ['']
-  # 数据库支持
-  # 当前支持：mysql、postgresql
-  database = ['']
-````
 
-- 5: 创建插件，前后端插件(从模板仓库拉取到指定插件目录，前端插件目录同上，后端只有拓展类插件无须拉取(手动创建)，后端插件目录：项目目录/后端名/backend/plugin/)
-- 6: 将插件信息写入到插件目录中的plugin.toml
-- 7: 删除插件目录中的.git文件夹，在初始化git默认master分支
-- 插件创建成功，输出提示
+**描述**：在当前项目中创建新插件
 
-#### list
+**步骤**：
 
-列出安装的前后端插件，自行到插件目录进行解析
+1. 选择插件类型：`web` / `server` / `all`（`all` 表示同时创建前后端，适用于相互依赖的插件）
+2. 若选择 `server` 或 `all`，则需进一步选择 Server 插件类型：
+   - **应用级插件**
+   - **扩展级插件**
+3. 输入插件名称
+4. 输入插件信息（写入 `plugin.toml`）：
+
+```toml
+# 插件信息
+[plugin]
+# 图标（插件仓库内的图标路径或图标链接地址）
+icon = 'assets/icon.svg'
+# 摘要（简短描述）
+summary = ''
+# 版本号
+version = ''
+# 描述
+description = ''
+# 作者
+author = ''
+# 标签
+# 当前支持：ai、mcp、agent、auth、storage、notification、task、payment、other
+tags = ['']
+# 数据库支持
+# 当前支持：mysql、postgresql
+database = ['']
+```
+
+5. 创建插件目录：
+   - 从模板仓库拉取至对应目录
+   - 前端插件目录：`{项目目录}/{frontend_name}/apps/web-antdv-next/src/plugins`
+   - 后端插件目录：`{项目目录}/{backend_name}/backend/plugin/`
+   - 注意：后端**扩展级插件**无需从模板拉取，手动创建即可
+6. 将插件信息写入插件目录中的 `plugin.toml`
+7. 删除 `.git` 文件夹，重新初始化 Git 仓库（默认 `master` 分支）
+8. 输出创建成功提示
+
+---
+
+#### plugin list
+
+**描述**：列出当前项目已安装的前后端插件
+
+扫描对应插件目录，解析 `plugin.toml` 文件并展示。
+
+---
 
 ### list
 
-列出项目，~/.fba.json 中记录的项目列表
+**描述**：列出 `~/.fba.json` 中记录的所有项目
+
+---
 
 ### current
 
-输出当前设置的默认项目
+**描述**：输出当前设置的默认项目
+
+---
 
 ### use
 
-设置默认项目
-弹出项目选择器用于选择
+**描述**：设置默认项目
+
+弹出项目选择器，选择目标项目后更新 `~/.fba.json` 中的 `current` 字段。
+
+---
 
 ### edit
 
-编辑~/.fba.json
+**描述**：编辑 `~/.fba.json` 全局配置文件
+
+---
 
 ### go
 
-直接进入到current 项目目录
+**描述**：切换终端工作目录至 `current` 指向的项目目录
 
-### fastapi-best-architecture 参考信息
+---
 
-- 前端repo：https://github.com/fastapi-practices/fastapi-best-architecture-ui.git
-- 后端repo：https://github.com/fastapi-practices/fastapi-best-architecture.git
-- 插件开发文档：https://fastapi-practices.github.io/fastapi_best_architecture_docs/plugin/dev.html
-- 文档：https://fastapi-practices.github.io/fastapi_best_architecture_docs/
-- 插件模板
-  - server: ./templates/server
-    因为server有两种，主要是应用级插件和扩展级插件，两者的配置不太一样，所有server模板下有两个plugin.toml
-    - plugin.app.toml：应用级插件
-    - plugin.ext.toml：扩展级插件
-  - web: ./templates/web
+## 参考信息
 
-### uv run fba 命令：
+### fastapi-best-architecture 相关链接
 
-uv run fba --help
+| 资源         | 地址                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------ |
+| 前端仓库     | `https://github.com/fastapi-practices/fastapi-best-architecture-ui.git`              |
+| 后端仓库     | `https://github.com/fastapi-practices/fastapi-best-architecture.git`                 |
+| 插件开发文档 | `https://fastapi-practices.github.io/fastapi_best_architecture_docs/plugin/dev.html` |
+| 项目文档     | `https://fastapi-practices.github.io/fastapi_best_architecture_docs/`                |
+
+### 插件模板
+
+```
+templates/
+├── server/
+│   ├── plugin.app.toml   # 应用级插件模板配置
+│   └── plugin.ext.toml   # 扩展级插件模板配置
+└── web/                  # 前端插件模板
+```
+
+### uv run fba 命令参考
 
 ```shell
 Usage: fba-cli [--sql PATH] {init,run,add,remove,format,celery,codegen,alembic} [-h] [-v] [--completion COMPLETION]
 
   一个高效的 fba 命令行界面
+
   Options
     [--sql PATH]               在事务中执行 SQL 脚本
 
@@ -493,13 +412,13 @@ Usage: fba-cli [--sql PATH] {init,run,add,remove,format,celery,codegen,alembic} 
     remove                     移除插件
     format                     格式化代码
     celery                     运行 Celery 服务
-    codegen                    代码生成（体验完整功能，请自行部署 fba vben 前端工程）
+    codegen                    代码生成
     alembic                    数据库迁移管理
 
   Help
-    [-h, --help]               Show this message and exit.
-    [-v, --version]            Show the version and exit.
-    [--completion COMPLETION]  Use --completion generate to print shell-specific completion source. Valid options: generate, complete.
+    [-h, --help]               显示帮助信息并退出
+    [-v, --version]            显示版本号并退出
+    [--completion COMPLETION]  使用 --completion generate 输出 Shell 补全脚本
 ```
 
 ```shell
@@ -508,12 +427,10 @@ Usage: fba-cli run [--host HOST] [--port PORT] [--no-reload] [--workers WORKERS]
   运行 API 服务
 
   Options
-    [--host HOST]        提供服务的主机 IP 地址，对于本地开发，请使用 127.0.0.1。要启用公共访问，例如在局域网中，请使用 0.0.0.0 (Default: 127.0.0.1)
-    [--port PORT]        提供服务的主机端口号 (Default: 8000)
-    [--no-reload]        禁用在（代码）文件更改时自动重新加载服务器 (Default: False)
-    [--workers WORKERS]  使用多个工作进程，必须与 --no-reload 同时使用 (Default: 1)
-
-  Help
+    [--host HOST]        服务监听地址（本地开发：127.0.0.1，局域网访问：0.0.0.0）(Default: 127.0.0.1)
+    [--port PORT]        服务监听端口 (Default: 8000)
+    [--no-reload]        禁用代码变更时自动重载 (Default: False)
+    [--workers WORKERS]  工作进程数，须与 --no-reload 同时使用 (Default: 1)
 ```
 
 ```shell
@@ -525,11 +442,8 @@ Usage: fba-cli add [--path PATH] [--repo-url REPO_URL] [--no-sql] [--db-type DB_
     [--path PATH]          ZIP 插件的本地完整路径
     [--repo-url REPO_URL]  Git 插件的仓库地址
     [--no-sql]             禁用插件 SQL 脚本自动执行 (Default: False)
-    [--db-type DB_TYPE]    执行插件 SQL 脚本的数据库类型 Valid options: mysql, postgresql. (Default: postgresql)
-    [--pk-type PK_TYPE]    执行插件 SQL 脚本数据库主键类型 Valid options: autoincrement, snowflake. (Default: autoincrement)
-
-  Help
-    [-h, --help]           Show this message and exit.
+    [--db-type DB_TYPE]    SQL 脚本数据库类型，可选：mysql、postgresql (Default: postgresql)
+    [--pk-type PK_TYPE]    SQL 脚本主键类型，可选：autoincrement、snowflake (Default: autoincrement)
 ```
 
 ```shell
@@ -542,31 +456,24 @@ Usage: fba-cli remove [--no-sql] [PLUGIN] [-h]
 
   Arguments
     [PLUGIN]      要移除的插件名称
-
-  Help
-    [-h, --help]  Show this message and exit.
 ```
 
-```
+```shell
 Usage: fba-cli celery {worker,beat,flower} [-h]
 
   运行 Celery 服务
 
   Subcommands
-    worker        从当前主机启动 Celery worker 服务
-    beat          从当前主机启动 Celery beat 服务
-    flower        从当前主机启动 Celery flower 服务
-
-  Help
-    [-h, --help]  Show this message and exit.
+    worker        启动 Celery Worker 服务
+    beat          启动 Celery Beat 服务
+    flower        启动 Celery Flower 服务
 ```
 
-### 技术栈
+---
 
-- bunjs(兼容nodejs)
-- typescript
-- 支持发布到npm
+## 技术栈
 
-### 呈现方式
-
-cli 命令行+部分tui
+- **运行时**：Bun.js（兼容 Node.js）
+- **语言**：TypeScript
+- **发布**：支持发布至 npm
+- **呈现方式**：CLI 命令行 + 部分 TUI 交互界面

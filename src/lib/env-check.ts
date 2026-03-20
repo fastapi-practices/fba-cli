@@ -24,10 +24,10 @@ async function checkTool(
  */
 export async function checkEnvironment(): Promise<EnvCheckSummary> {
   const [python, uv, pnpm, npm, docker] = await Promise.all([
-    checkTool('Python', getPythonCommand(), ['--version'], true),
+    checkTool('Python', getPythonCommand(), ['--version'], false),
     checkTool('uv', 'uv', ['--version'], true),
     checkTool('pnpm', 'pnpm', ['--version'], true),
-    checkTool('npm', 'npm', ['--version'], false),
+    checkTool('npm', 'npm', ['--version'], true),
     checkTool('Docker', 'docker', ['info'], false),
   ])
 

@@ -4,6 +4,13 @@ import chalk from 'chalk'
 import { readGlobalConfig, writeGlobalConfig } from '../lib/config.js'
 import { setLanguage, t } from '../lib/i18n.js'
 import { getDefaultShell } from '../lib/platform.js'
+import {
+  NPM_REGISTRIES,
+  PYPI_REGISTRIES,
+  getRegistryLabel,
+  selectNpmRegistry,
+  selectPypiRegistry,
+} from '../lib/registry.js'
 
 interface ConfigOption {
   key: string
@@ -77,6 +84,30 @@ export async function configSetAction() {
         writeGlobalConfig(config)
         const name = config.projects.find(p => p.path === project)?.name ?? project
         clack.log.success(chalk.green(`${t('configDefaultSet')} ${name}`))
+      },
+    },
+    {
+      key: 'npmRegistry',
+      label: t('registryNpmLabel'),
+      current: () => getRegistryLabel(NPM_REGISTRIES, config.npmRegistry),
+      set: async () => {
+        const url = await selectNpmRegistry(config.npmRegistry)
+        if (clack.isCancel(url)) return
+        config.npmRegistry = url as string
+        writeGlobalConfig(config)
+        clack.log.success(chalk.green(`${t('registryNpmSet')} ${getRegistryLabel(NPM_REGISTRIES, config.npmRegistry)}`))
+      },
+    },
+    {
+      key: 'pypiRegistry',
+      label: t('registryPypiLabel'),
+      current: () => getRegistryLabel(PYPI_REGISTRIES, config.pypiRegistry),
+      set: async () => {
+        const url = await selectPypiRegistry(config.pypiRegistry)
+        if (clack.isCancel(url)) return
+        config.pypiRegistry = url as string
+        writeGlobalConfig(config)
+        clack.log.success(chalk.green(`${t('registryPypiSet')} ${getRegistryLabel(PYPI_REGISTRIES, config.pypiRegistry)}`))
       },
     },
   ]

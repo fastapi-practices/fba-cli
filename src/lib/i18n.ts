@@ -21,6 +21,8 @@ const messages = {
     envInstallSuccess: "安装成功",
     envInstallFail: "安装失败",
     envSelectInstall: "选择要安装的工具",
+    envOptional: "可选",
+    envRequired: "必须",
     installingTool: "正在安装",
 
     // Create
@@ -205,6 +207,16 @@ const messages = {
     configSelectSetting: "选择要设置的配置项",
     configEnvDefault: "环境默认",
 
+    // Registry
+    registryNpmLabel: "npm 镜像源",
+    registryPypiLabel: "PyPI 镜像源",
+    registrySelectNpm: "选择 npm 镜像源",
+    registrySelectPypi: "选择 PyPI 镜像源",
+    registryNpmSet: "npm 源 →",
+    registryPypiSet: "PyPI 源 →",
+    registryDefault: "官方源 (未配置)",
+    registrySetupTitle: "配置包管理器镜像源",
+
     // Edit
     editOpening: "正在使用编辑器打开",
 
@@ -262,6 +274,8 @@ const messages = {
     envInstallSuccess: "Installed successfully",
     envInstallFail: "Installation failed",
     envSelectInstall: "Select tools to install",
+    envOptional: "optional",
+    envRequired: "required",
     installingTool: "Installing",
 
     projectName: "Project name",
@@ -434,6 +448,16 @@ const messages = {
     configDefaultSet: "Default project →",
     configSelectSetting: "Select setting",
     configEnvDefault: "env default",
+
+    // Registry
+    registryNpmLabel: "npm Registry",
+    registryPypiLabel: "PyPI Registry",
+    registrySelectNpm: "Select npm registry",
+    registrySelectPypi: "Select PyPI registry",
+    registryNpmSet: "npm registry →",
+    registryPypiSet: "PyPI registry →",
+    registryDefault: "Official (not configured)",
+    registrySetupTitle: "Set up package manager registries",
 
     editOpening: "Opening with editor",
 
