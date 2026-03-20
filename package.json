@@ -1,16 +1,16 @@
 {
   "name": "@yuworm/fba-cli",
   "version": "0.1.2",
-  "description": "CLI tool for creating, managing, and running fastapi-best-architecture projects",
+  "description": "Super CLI tool for creating, managing, and running fastapi-best-architecture projects",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://github.com/yuWorm/fba-cli#readme",
+  "homepage": "https://github.com/fastapi-practices/fba-cli#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yuWorm/fba-cli.git"
+    "url": "git+https://github.com/fastapi-practices/fba-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/yuWorm/fba-cli/issues"
+    "url": "https://github.com/fastapi-practices/fba-cli/issues"
   },
   "bin": {
     "fba-cli": "./dist/index.js"
@@ -26,17 +26,16 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "bun run src/index.ts",
-    "start": "bun run src/index.ts",
-    "build": "bun build ./src/index.ts --target node --outdir ./dist --format esm --splitting",
-    "typecheck": "bunx tsc --noEmit",
-    "prepublishOnly": "bun run typecheck && bun run build"
+    "dev": "tsx src/index.ts",
+    "build": "tsup src/index.ts --format esm --out-dir dist --target node18 --clean",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "@types/bun": "latest",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@clack/core": "^1.1.0",
