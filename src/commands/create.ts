@@ -35,12 +35,12 @@ const FRONTEND_REPO =
   "https://github.com/fastapi-practices/fastapi-best-architecture-ui.git";
 
 const LOGO = `
-  ███████╗██████╗  █████╗ 
-  ██╔════╝██╔══██╗██╔══██╗
-  █████╗  ██████╔╝███████║
-  ██╔══╝  ██╔══██╗██╔══██║
-  ██║     ██████╔╝██║  ██║
-  ╚═╝     ╚═════╝ ╚═╝  ╚═╝
+  ███████╗██████╗  █████╗       ██████╗██╗     ██╗
+  ██╔════╝██╔══██╗██╔══██╗     ██╔════╝██║     ██║
+  █████╗  ██████╔╝███████║     ██║     ██║     ██║
+  ██╔══╝  ██╔══██╗██╔══██║     ██║     ██║     ██║
+  ██║     ██████╔╝██║  ██║     ╚██████╗███████╗██║
+  ╚═╝     ╚═════╝ ╚═╝  ╚═╝      ╚═════╝╚══════╝╚═╝
 `;
 
 // ─── 回退机制 ───
@@ -79,6 +79,24 @@ function onCancel(): never {
   process.exit(0);
 }
 
+function formatEnvCheckStatus(check: { name: string; command: string; found: boolean; version?: string }) {
+  if (!check.found) {
+    return chalk.red(`✗ ${check.name} ${t("envNotFound")}`);
+  }
+
+  const rawVersion = check.version?.trim() ?? "";
+  const loweredVersion = rawVersion.toLowerCase();
+  const prefixes = [check.name, check.command]
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  const displayVersion = prefixes.some((prefix) => loweredVersion.startsWith(`${prefix} `))
+    ? rawVersion.slice(rawVersion.indexOf(" ") + 1).trim()
+    : rawVersion;
+
+  return chalk.green(`✓ ${check.name}${displayVersion ? ` ${displayVersion}` : ""}`);
+}
+
 export async function createAction() {
   // ─── 注册 SIGINT 清理 ───
   const sigintHandler = () => {
@@ -106,7 +124,7 @@ export async function createAction() {
 async function _createFlow() {
   // ─── 欢迎 & 语言 ───
   console.log(chalk.cyan(LOGO));
-  clack.intro(chalk.bgCyan(" FBA CLI "));
+  clack.intro(chalk.bgCyan(" fba-cli "));
 
   // 首次使用选择语言
   if (isFirstRun()) {
@@ -134,10 +152,7 @@ async function _createFlow() {
 
   // 输出检测结果
   for (const [, check] of Object.entries(envSummary)) {
-    const status = check.found
-      ? chalk.green(`✓ ${check.name} ${check.version ?? ""}`)
-      : chalk.red(`✗ ${check.name} ${t("envNotFound")}`);
-    clack.log.info(status);
+    clack.log.info(formatEnvCheckStatus(check));
   }
 
   // 处理缺失工具
