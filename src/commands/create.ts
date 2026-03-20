@@ -47,6 +47,11 @@ const LOGO = `
 let _cleanupDir: string | null = null;
 let _infraDir: string | null = null;
 
+function normalizeProjectRootInput(value?: string): string {
+  const projectRoot = value?.trim();
+  return projectRoot ? resolve(projectRoot) : process.cwd();
+}
+
 async function cleanup() {
   if (!_cleanupDir) return;
   console.log(chalk.yellow(`\n\n  ⟲ ${t('rollingBack')} ${_cleanupDir}`));
@@ -192,10 +197,7 @@ async function _createFlow() {
           placeholder: process.cwd(),
           defaultValue: process.cwd(),
           validate: (v) => {
-            const projectRoot = v?.trim();
-            if (!projectRoot) return t("projectRootRequired");
-
-            const resolvedRoot = resolve(projectRoot);
+            const resolvedRoot = normalizeProjectRootInput(v);
             if (!existsSync(resolvedRoot)) return t("projectRootNotExist");
 
             try {
@@ -215,7 +217,7 @@ async function _createFlow() {
           placeholder: "my-fba-project",
           validate: (v) => {
             if (!v?.trim()) return t("projectNameRequired");
-            const projectRoot = resolve((results.projectRoot as string | undefined) ?? process.cwd());
+            const projectRoot = normalizeProjectRootInput(results.projectRoot as string | undefined);
             if (existsSync(join(projectRoot, v.trim())))
               return t("projectNameExists");
             return undefined;
@@ -239,8 +241,11 @@ async function _createFlow() {
     },
   );
 
-  const projectRoot = resolve(projectConfig.projectRoot);
-  const projectDir = join(projectRoot, projectConfig.projectName);
+  const projectRoot = normalizeProjectRootInput(projectConfig.projectRoot);
+  const projectName = String(projectConfig.projectName);
+  const backendName = String(projectConfig.backendName);
+  const frontendName = String(projectConfig.frontendName);
+  const projectDir = join(projectRoot, projectName);
 
   // 创建项目目录 → 从此刻起需要回退
   if (!existsSync(projectDir)) {
@@ -251,14 +256,14 @@ async function _createFlow() {
   // ─── 仓库克隆 ───
   clack.log.step(t("cloningRepos"));
 
-  const backendDir = join(projectDir, projectConfig.backendName);
-  const frontendDir = join(projectDir, projectConfig.frontendName);
+  const backendDir = join(projectDir, backendName);
+  const frontendDir = join(projectDir, frontendName);
 
   const backendCloned = await gitClone(BACKEND_REPO, backendDir, {
-    label: `${t('labelBackend')} → ${projectConfig.backendName}`,
+    label: `${t('labelBackend')} → ${backendName}`,
   });
   const frontendCloned = await gitClone(FRONTEND_REPO, frontendDir, {
-    label: `${t('labelFrontend')} → ${projectConfig.frontendName}`,
+    label: `${t('labelFrontend')} → ${frontendName}`,
   });
 
   if (!backendCloned || !frontendCloned) {
@@ -471,9 +476,9 @@ async function _createFlow() {
 
   // ─── 写入项目配置 ───
   const projConfig: ProjectConfig = {
-    name: projectConfig.projectName,
-    backend_name: projectConfig.backendName,
-    frontend_name: projectConfig.frontendName,
+    name: projectName,
+    backend_name: backendName,
+    frontend_name: frontendName,
     server_port: serverPort,
     web_port: webPort,
     infra: hasInfra,
@@ -565,7 +570,7 @@ async function _createFlow() {
 
   // ─── 注册项目 ───
   addProject({
-    name: projectConfig.projectName,
+    name: projectName,
     path: projectDir,
     createdAt: new Date().toISOString(),
   });
