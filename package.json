@@ -1,5 +1,5 @@
 {
-  "name": "@yuworm/fba-cli",
+  "name": "@fba/cli",
   "version": "0.1.2",
   "description": "Super CLI tool for creating, managing, and running fastapi-best-architecture projects",
   "type": "module",
