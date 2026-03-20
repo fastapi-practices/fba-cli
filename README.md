@@ -12,7 +12,9 @@
 ## 安装
 
 ```bash
-npm install -g @yuworm/fba-cli
+npm install -g @fba/cli
+pnpm install -g @fba/cli
+bun install -g @fba/cli
 ```
 
 ```bash
