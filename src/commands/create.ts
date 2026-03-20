@@ -1,8 +1,8 @@
 // create.ts — 项目创建完整流程
 import * as clack from "@clack/prompts";
 import chalk from "chalk";
-import { join } from "path";
-import { existsSync, mkdirSync, writeFileSync, rmSync } from "fs";
+import { join, resolve } from "path";
+import { existsSync, mkdirSync, statSync, writeFileSync, rmSync } from "fs";
 import { t, setLanguage } from "../lib/i18n.js";
 import {
   readGlobalConfig,
@@ -186,22 +186,40 @@ async function _createFlow() {
   // ─── 项目配置 ───
   const projectConfig = await clack.group(
     {
-      projectName: () =>
+      projectRoot: () =>
+        clack.text({
+          message: t("projectRoot"),
+          placeholder: process.cwd(),
+          defaultValue: process.cwd(),
+          validate: (v) => {
+            const projectRoot = v?.trim();
+            if (!projectRoot) return t("projectRootRequired");
+
+            const resolvedRoot = resolve(projectRoot);
+            if (!existsSync(resolvedRoot)) return t("projectRootNotExist");
+
+            try {
+              if (!statSync(resolvedRoot).isDirectory()) {
+                return t("projectRootNotDirectory");
+              }
+            } catch {
+              return t("projectRootNotDirectory");
+            }
+
+            return undefined;
+          },
+        }),
+      projectName: ({ results }) =>
         clack.text({
           message: t("projectName"),
           placeholder: "my-fba-project",
           validate: (v) => {
             if (!v?.trim()) return t("projectNameRequired");
-            if (existsSync(join(process.cwd(), v.trim())))
+            const projectRoot = resolve((results.projectRoot as string | undefined) ?? process.cwd());
+            if (existsSync(join(projectRoot, v.trim())))
               return t("projectNameExists");
             return undefined;
           },
-        }),
-      frontendName: () =>
-        clack.text({
-          message: t("frontendName"),
-          placeholder: "fastapi-best-architecture-ui",
-          defaultValue: "fastapi-best-architecture-ui",
         }),
       backendName: () =>
         clack.text({
@@ -209,13 +227,20 @@ async function _createFlow() {
           placeholder: "fastapi-best-architecture",
           defaultValue: "fastapi-best-architecture",
         }),
+      frontendName: () =>
+        clack.text({
+          message: t("frontendName"),
+          placeholder: "fastapi-best-architecture-ui",
+          defaultValue: "fastapi-best-architecture-ui",
+        }),
     },
     {
       onCancel: () => onCancel(),
     },
   );
 
-  const projectDir = join(process.cwd(), projectConfig.projectName);
+  const projectRoot = resolve(projectConfig.projectRoot);
+  const projectDir = join(projectRoot, projectConfig.projectName);
 
   // 创建项目目录 → 从此刻起需要回退
   if (!existsSync(projectDir)) {
@@ -549,7 +574,7 @@ async function _createFlow() {
   clack.log.success(chalk.green.bold(t("createSuccess")));
   clack.note(
     [
-      `cd ${projectConfig.projectName}`,
+      `cd ${projectDir}`,
       `fba-cli dev          # ${t("initInfra")}`,
       `fba-cli dev:web      # ${t("initFrontend")}`,
     ].join("\n"),
