@@ -264,7 +264,113 @@ export const pluginDataList: PluginData[] = [
     },
     "git": {
       "path": "plugins/ldap_auth",
-      "url": "https://gith```
+      "url": "https://github.com/dividduang/ldap_auth.git",
+      "branch": "master"
+    }
+  },
+  {
+    "plugin": {
+      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
+      "summary": "MCP",
+      "version": "0.0.3",
+      "description": "MCP 服务器管理",
+      "author": "wu-clan",
+      "type": "web",
+      "tags": ["ai", "mcp"],
+      "database": ["mysql", "postgresql"]
+    },
+    "git": {
+      "path": "plugins/mcp",
+      "url": "https://github.com/fastapi-practices/mcp.git",
+      "branch": "master"
+    }
+  },
+  {
+    "plugin": {
+      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
+      "summary": "OSS",
+      "version": "0.0.5",
+      "description": "阿里云 OSS 文件上传",
+      "author": "wu-clan",
+      "type": "web",
+      "tags": ["storage"],
+      "database": ["mysql", "postgresql"]
+    },
+    "git": {
+      "path": "plugins/oss",
+      "url": "https://github.com/fastapi-practices/oss.git",
+      "branch": "master"
+    }
+  },
+  {
+    "plugin": {
+      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
+      "summary": "S3",
+      "version": "0.0.1",
+      "description": "提供兼容 S3 协议的对象存储能力",
+      "author": "wu-clan",
+      "type": "web",
+      "tags": ["storage"],
+      "database": ["mysql", "postgresql"]
+    },
+    "git": {
+      "path": "plugins/s3",
+      "url": "https://github.com/fastapi-practices/s3.git",
+      "branch": "master"
+    }
+  },
+  {
+    "plugin": {
+      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
+      "summary": "腾讯云短信服务",
+      "version": "0.0.2",
+      "description": "使用腾讯云短信服务发送短信验证码",
+      "author": "ranyong",
+      "type": "web"
+    },
+    "git": {
+      "path": "plugins/sms",
+      "url": "https://github.com/RanY-Luck/sms.git",
+      "branch": "master"
+    }
+  },
+  {
+    "plugin": {
+      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
+      "summary": "Task",
+      "version": "0.0.1",
+      "description": "基于 taskiq 的异步任务队列插件",
+      "author": "wu-clan",
+      "type": "web",
+      "tags": ["task"],
+      "database": ["mysql", "postgresql"]
+    },
+    "git": {
+      "path": "plugins/task",
+      "url": "https://github.com/fastapi-practices/task.git",
+      "branch": "master"
+    }
+  },
+  {
+    "plugin": {
+      "icon": "https://wu-clan.github.io/picx-images-hosting/logo/fba.svg",
+      "summary": "多租户",
+      "version": "0.0.1",
+      "description": "为系统提供多租户能力，包括租户管理、套餐管理、行级数据隔离",
+      "author": "wu-clan",
+      "type": "web",
+      "tags": ["other"],
+      "database": ["mysql", "postgresql"]
+    },
+    "git": {
+      "path": "plugins/tenant",
+      "url": "https://github.com/fastapi-practices/tenant.git",
+      "branch": "master"
+    }
+  }
+]
+```
+
 解析上面的结构，列出插件市场，并支持搜索，过滤
 
 #### plugin add
