@@ -215,18 +215,7 @@ async function _createFlow() {
     clack.log.info(status);
   }
 
-  // 检查必须工具是否缺失
-  const missingRequired = getMissingRequiredTools(envSummary);
-  if (missingRequired.length > 0) {
-    clack.log.error(
-      chalk.red(
-        `${missingRequired.map((m) => m.name).join(", ")} ${t("envRequired")}`,
-      ),
-    );
-    process.exit(1);
-  }
-
-  // 处理缺失的可选工具
+  // 处理所有缺失的工具（必要 + 可选）
   const missing = getMissingTools(envSummary);
   if (missing.length > 0) {
     const shouldInstall = await clack.confirm({ message: t("envMissing") });
@@ -235,7 +224,10 @@ async function _createFlow() {
     if (shouldInstall) {
       const toInstall = await clack.multiselect({
         message: `${t("envSelectInstall")} ${chalk.dim(t("multiselectHint"))}`,
-        options: missing.map((m) => ({ value: m.command, label: m.name })),
+        options: missing.map((m) => ({
+          value: m.command,
+          label: `${m.name} ${m.required ? chalk.yellow(`(${t("envRequired")})`) : chalk.dim(`(${t("envOptional")})`)}`,
+        })),
         initialValues: missing.map((m) => m.command),
       });
       if (clack.isCancel(toInstall)) onCancel();
@@ -251,6 +243,18 @@ async function _createFlow() {
           );
         }
       }
+    }
+
+    // 安装后重新检测必要工具是否就绪
+    const recheck = await checkEnvironment();
+    const stillMissing = getMissingRequiredTools(recheck);
+    if (stillMissing.length > 0) {
+      clack.log.error(
+        chalk.red(
+          `${stillMissing.map((m) => m.name).join(", ")} ${t("envRequired")}`,
+        ),
+      );
+      process.exit(1);
     }
   }
 
