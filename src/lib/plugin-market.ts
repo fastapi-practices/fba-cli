@@ -1,59 +1,76 @@
 // plugin-market.ts — 插件市场数据获取 & 解析
+import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { join } from 'path'
+import { homedir } from 'os'
 import { ofetch } from 'ofetch'
+import { basename } from 'path'
 import type { PluginData } from '../types/plugin.js'
+import { inferPluginType } from '../types/plugin.js'
 
 const PLUGIN_DATA_URL =
   'https://raw.githubusercontent.com/fastapi-practices/plugins/refs/heads/master/plugins-data.ts'
 
-/**
- * 从远程获取并解析插件市场数据
- */
-export async function fetchPluginMarketData(): Promise<PluginData[]> {
-  const content = await ofetch(PLUGIN_DATA_URL, { responseType: 'text' })
+const CACHE_PATH = join(homedir(), '.fba-plugins-cache.json')
 
-  // 提取 pluginDataList 数组 JSON
-  const match = content.match(/pluginDataList[^=]*=\s*(\[[\s\S]*\])/)
-  if (!match?.[1]) {
-    throw new Error('Failed to parse plugin market data: pluginDataList not found')
-  }
+// ─── 缓存 ───
 
+function readCache(): PluginData[] | null {
+  if (!existsSync(CACHE_PATH)) return null
   try {
-    // TS 文件中的值本身就是合法 JSON
-    return JSON.parse(match[1]) as PluginData[]
-  } catch (e) {
-    throw new Error(`Failed to parse plugin data JSON: ${e}`)
+    return JSON.parse(readFileSync(CACHE_PATH, 'utf-8')) as PluginData[]
+  } catch {
+    return null
+  }
+}
+
+function writeCache(data: PluginData[]): void {
+  try {
+    writeFileSync(CACHE_PATH, JSON.stringify(data), 'utf-8')
+  } catch {
+    // 缓存写入失败不影响主流程
+  }
+}
+
+// ─── 数据获取 ───
+
+/**
+ * 从远程获取并解析插件市场数据，失败时回退到本地缓存
+ *
+ * @returns `{ data, fromCache }` — fromCache 为 true 时说明使用了缓存
+ */
+export async function fetchPluginMarketData(): Promise<{ data: PluginData[]; fromCache: boolean }> {
+  try {
+    const content = await ofetch(PLUGIN_DATA_URL, { responseType: 'text' })
+
+    const match = content.match(/pluginDataList[^=]*=\s*(\[[\s\S]*\])/)
+    if (!match?.[1]) {
+      throw new Error('pluginDataList not found')
+    }
+
+    const data = JSON.parse(match[1]) as PluginData[]
+    writeCache(data)
+    return { data, fromCache: false }
+  } catch {
+    const cached = readCache()
+    if (cached) return { data: cached, fromCache: true }
+    throw new Error('Failed to fetch plugin market data and no local cache available')
   }
 }
 
 /**
- * 按关键词搜索插件
+ * 按 type 过滤插件（基于 git.path 名称推断类型）
  */
-export function searchPlugins(plugins: PluginData[], query: string): PluginData[] {
-  if (!query.trim()) return plugins
-  const q = query.toLowerCase()
+export function filterByType(plugins: PluginData[], type: string): PluginData[] {
+  if (!type || type === 'all') return plugins
   return plugins.filter(p => {
-    const plugin = p.plugin
-    return (
-      plugin.summary.toLowerCase().includes(q) ||
-      plugin.description.toLowerCase().includes(q) ||
-      plugin.author.toLowerCase().includes(q) ||
-      plugin.tags?.some(t => t.toLowerCase().includes(q))
-    )
+    const name = basename(p.git.path)
+    return inferPluginType(name) === type
   })
 }
 
 /**
- * 按 tag 过滤插件
+ * 根据市场插件的 git.path 推断插件类型
  */
-export function filterByTag(plugins: PluginData[], tag: string): PluginData[] {
-  if (!tag || tag === 'all') return plugins
-  return plugins.filter(p => p.plugin.tags?.includes(tag as any))
-}
-
-/**
- * 按 type 过滤插件
- */
-export function filterByType(plugins: PluginData[], type: string): PluginData[] {
-  if (!type || type === 'all') return plugins
-  return plugins.filter(p => p.plugin.type === type)
+export function getMarketPluginType(p: PluginData): 'web' | 'server' {
+  return inferPluginType(basename(p.git.path))
 }

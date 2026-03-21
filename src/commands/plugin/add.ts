@@ -1,11 +1,13 @@
 // plugin/add.ts — 插件添加
 import * as clack from '@clack/prompts'
 import chalk from 'chalk'
+import { basename } from 'path'
 import { t } from '../../lib/i18n.js'
 import { requireProjectDir, fatal } from '../../lib/errors.js'
-import { fetchPluginMarketData, searchPlugins, filterByType } from '../../lib/plugin-market.js'
+import { fetchPluginMarketData, filterByType, getMarketPluginType } from '../../lib/plugin-market.js'
 import { installFromMarket, installFrontendPlugin, installBackendPlugin, runPnpmInstall } from '../../lib/plugin-install.js'
 import type { PluginData } from '../../types/plugin.js'
+import { inferPluginType } from '../../types/plugin.js'
 
 /**
  * fba plugin add — 添加插件
@@ -73,12 +75,18 @@ export async function pluginMarketFlow(projectDir: string) {
 
   let plugins: PluginData[]
   try {
-    plugins = await fetchPluginMarketData()
+    const result = await fetchPluginMarketData()
+    plugins = result.data
+    if (result.fromCache) {
+      loadSpinner.stop(`${t('pluginMarketTitle')} (${plugins.length} ${t('pluginCount')})`)
+      clack.log.warn(chalk.yellow(t('pluginMarketCacheUsed')))
+    } else {
+      loadSpinner.stop(`${t('pluginMarketTitle')} (${plugins.length} ${t('pluginCount')})`)
+    }
   } catch (e: any) {
     loadSpinner.stop(chalk.red(`${t('pluginLoadFailed')}: ${e.message}`))
     return
   }
-  loadSpinner.stop(`${t('pluginMarketTitle')} (${plugins.length} ${t('pluginCount')})`)
 
   // 类型过滤
   const typeFilter = await clack.select({
@@ -99,7 +107,7 @@ export async function pluginMarketFlow(projectDir: string) {
     options: filtered.map((p, i) => ({
       value: i,
       label: `${p.plugin.summary}`,
-      hint: `v${p.plugin.version} | ${p.plugin.type} | @${p.plugin.author}`,
+      hint: `v${p.plugin.version} | ${getMarketPluginType(p)} | @${p.plugin.author}`,
     })),
     required: false,
   })
@@ -111,18 +119,18 @@ export async function pluginMarketFlow(projectDir: string) {
 
   // 安装
   clack.log.step(t('pluginInstalling'))
-  const result = await installFromMarket(projectDir, selectedPlugins)
+  const installResult = await installFromMarket(projectDir, selectedPlugins)
 
-  for (const name of result.success) {
+  for (const name of installResult.success) {
     clack.log.success(chalk.green(`✓ ${name}`))
   }
-  for (const name of result.failed) {
+  for (const name of installResult.failed) {
     clack.log.error(chalk.red(`✗ ${name}`))
   }
 
   // 如果安装了前端插件，询问 pnpm install
-  const hasWebPlugins = selectedPlugins.some(p => p?.plugin.type === 'web')
-  if (hasWebPlugins && result.success.length > 0) {
+  const hasWebPlugins = selectedPlugins.some(p => getMarketPluginType(p) === 'web')
+  if (hasWebPlugins && installResult.success.length > 0) {
     const doPnpm = await clack.confirm({ message: t('pluginPnpmInstall') })
     if (!clack.isCancel(doPnpm) && doPnpm) {
       await runPnpmInstall(projectDir)

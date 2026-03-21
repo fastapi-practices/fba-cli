@@ -6,9 +6,10 @@ import { run } from './process.js'
 import { gitClone, removeGitDir } from './git.js'
 import { getFrontendPluginDir, getBackendPluginDir, getBackendDir, getFrontendDir } from './config.js'
 import type { InstalledPlugin, PluginInfo, PluginData } from '../types/plugin.js'
+import { inferPluginType } from '../types/plugin.js'
 
 /**
- * 扫描已安装的插件
+ * 扫描已安装的插件（通过名称后缀 _ui 判断类型）
  */
 export function scanInstalledPlugins(projectDir: string): InstalledPlugin[] {
   const plugins: InstalledPlugin[] = []
@@ -20,7 +21,7 @@ export function scanInstalledPlugins(projectDir: string): InstalledPlugin[] {
       const tomlPath = join(frontendPluginDir, dir, 'plugin.toml')
       const info = readPluginToml(tomlPath)
       if (info) {
-        plugins.push({ name: dir, dir: join(frontendPluginDir, dir), type: 'web', info })
+        plugins.push({ name: dir, dir: join(frontendPluginDir, dir), type: inferPluginType(dir), info })
       }
     }
   }
@@ -32,7 +33,7 @@ export function scanInstalledPlugins(projectDir: string): InstalledPlugin[] {
       const tomlPath = join(backendPluginDir, dir, 'plugin.toml')
       const info = readPluginToml(tomlPath)
       if (info) {
-        plugins.push({ name: dir, dir: join(backendPluginDir, dir), type: 'server', info })
+        plugins.push({ name: dir, dir: join(backendPluginDir, dir), type: inferPluginType(dir), info })
       }
     }
   }
@@ -114,7 +115,7 @@ export async function installBackendPlugin(
 }
 
 /**
- * 从插件市场数据安装多个插件
+ * 从插件市场数据安装多个插件（通过名称后缀 _ui 判断类型）
  */
 export async function installFromMarket(
   projectDir: string,
@@ -123,21 +124,17 @@ export async function installFromMarket(
   const success: string[] = []
   const failed: string[] = []
 
-  const webPlugins = plugins.filter(p => p.plugin.type === 'web')
-  const serverPlugins = plugins.filter(p => p.plugin.type === 'server')
-
-  // 安装前端插件
-  for (const p of webPlugins) {
+  for (const p of plugins) {
     const name = basename(p.git.path) || p.plugin.summary
-    const ok = await installFrontendPlugin(projectDir, p.git.url, name, p.git.branch)
-    if (ok) success.push(name)
-    else failed.push(name)
-  }
+    const type = inferPluginType(name)
 
-  // 安装后端插件
-  for (const p of serverPlugins) {
-    const ok = await installBackendPlugin(projectDir, { repoUrl: p.git.url })
-    const name = basename(p.git.path) || p.plugin.summary
+    let ok: boolean
+    if (type === 'web') {
+      ok = await installFrontendPlugin(projectDir, p.git.url, name, p.git.branch)
+    } else {
+      ok = await installBackendPlugin(projectDir, { repoUrl: p.git.url })
+    }
+
     if (ok) success.push(name)
     else failed.push(name)
   }

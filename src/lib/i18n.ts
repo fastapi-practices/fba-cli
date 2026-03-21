@@ -150,6 +150,8 @@ const messages = {
     pluginTableVersion: "版本",
     pluginTableAuthor: "作者",
     pluginTotal: "共计",
+    pluginNameAutoSuffix: "前端插件名称已自动添加 _ui 后缀",
+    pluginMarketCacheUsed: "网络不可用，使用本地缓存数据",
 
     // Completion
     createSuccess: "项目创建成功!",
@@ -398,6 +400,8 @@ const messages = {
     pluginTableVersion: "Version",
     pluginTableAuthor: "Author",
     pluginTotal: "Total",
+    pluginNameAutoSuffix: "Frontend plugin name auto-appended with _ui suffix",
+    pluginMarketCacheUsed: "Network unavailable, using local cache",
 
     createSuccess: "Project created successfully!",
     nextSteps: "Next steps",

@@ -8,7 +8,7 @@ import { requireProjectDir } from '../../lib/errors.js'
 import { getFrontendPluginDir, getBackendPluginDir } from '../../lib/config.js'
 import { renderTemplate, type TemplateVars } from '../../lib/template.js'
 import { gitInit } from '../../lib/git.js'
-import { VALID_TAGS, VALID_DATABASES, type ServerPluginLevel } from '../../types/plugin.js'
+import { VALID_TAGS, VALID_DATABASES, type ServerPluginLevel, ensureWebPluginName } from '../../types/plugin.js'
 import { parse as parseToml, stringify as stringifyToml } from 'smol-toml'
 import { readFileSync, writeFileSync } from 'fs'
 
@@ -61,22 +61,32 @@ export async function pluginCreateAction(options: { project?: string }) {
     }),
   }, { onCancel: () => process.exit(0) })
 
-  const vars: TemplateVars = {
-    name: config.name,
-    summary: config.summary,
-    version: config.version,
-    description: config.description,
-    author: config.author,
-  }
-
   const typesToCreate: Array<'web' | 'server'> = config.type === 'all'
     ? ['web', 'server']
     : [config.type as 'web' | 'server']
 
   for (const pluginType of typesToCreate) {
+    // 前端插件必须以 _ui 结尾
+    let pluginName = config.name
+    if (pluginType === 'web') {
+      const result = ensureWebPluginName(pluginName)
+      pluginName = result.name
+      if (result.appended) {
+        clack.log.info(chalk.cyan(`${t('pluginNameAutoSuffix')}: ${pluginName}`))
+      }
+    }
+
+    const vars: TemplateVars = {
+      name: pluginName,
+      summary: config.summary,
+      version: config.version,
+      description: config.description,
+      author: config.author,
+    }
+
     const targetDir = pluginType === 'web'
-      ? join(getFrontendPluginDir(projectDir), config.name)
-      : join(getBackendPluginDir(projectDir), config.name)
+      ? join(getFrontendPluginDir(projectDir), pluginName)
+      : join(getBackendPluginDir(projectDir), pluginName)
 
     if (existsSync(targetDir)) {
       clack.log.warn(chalk.yellow(`${t('pluginDirExists')}: ${targetDir}`))
@@ -84,7 +94,7 @@ export async function pluginCreateAction(options: { project?: string }) {
     }
 
     const createSpinner = clack.spinner()
-    createSpinner.start(`${t('pluginCreating')} ${pluginType}: ${config.name}`)
+    createSpinner.start(`${t('pluginCreating')} ${pluginType}: ${pluginName}`)
 
     try {
       // 1. 渲染模板
@@ -106,8 +116,9 @@ export async function pluginCreateAction(options: { project?: string }) {
           parsed.plugin.description = config.description
           parsed.plugin.author = config.author
           parsed.plugin.tags = config.tags
-          if (config.database.length > 0) {
-            parsed.plugin.database = config.database
+          const database = config.database as string[] | undefined
+          if (database && database.length > 0) {
+            parsed.plugin.database = database
           }
         }
         writeFileSync(tomlPath, stringifyToml(parsed), 'utf-8')
