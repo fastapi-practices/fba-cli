@@ -1,0 +1,1 @@
+-- PostgreSQL 自增 id 模式销毁 SQL
