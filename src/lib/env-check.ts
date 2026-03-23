@@ -3,6 +3,27 @@ import { checkCommand } from './process.js'
 import { getPythonCommand } from './platform.js'
 import type { EnvCheckResult, EnvCheckSummary } from '../types/env.js'
 
+function normalizeVersion(
+  version: string | undefined,
+  name: string,
+  command: string,
+): string | undefined {
+  if (!version) return version
+
+  let normalized = version.trim()
+  const prefixes = [name, command]
+
+  for (const prefix of prefixes) {
+    const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    normalized = normalized.replace(
+      new RegExp(`^${escaped}(?:\\s+version)?\\s+`, 'i'),
+      '',
+    )
+  }
+
+  return normalized
+}
+
 async function checkTool(
   name: string,
   command: string,
@@ -14,7 +35,7 @@ async function checkTool(
     name,
     command,
     found: result.found,
-    version: result.version,
+    version: normalizeVersion(result.version, name, command),
     required,
   }
 }
