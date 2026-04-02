@@ -7,7 +7,7 @@ import { requireProjectDir, fatal } from '../../lib/errors.js'
 import { fetchPluginMarketData, filterByType, getMarketPluginType } from '../../lib/plugin-market.js'
 import { installFromMarket, installFrontendPlugin, installBackendPlugin, runPnpmInstall } from '../../lib/plugin-install.js'
 import type { PluginData } from '../../types/plugin.js'
-import { inferPluginType } from '../../types/plugin.js'
+import { inferPluginType, stripWebPluginSuffix } from '../../types/plugin.js'
 
 /**
  * fba plugin add — 添加插件
@@ -32,11 +32,12 @@ export async function pluginAddAction(options: {
 
     if (options.f) {
       // 前端插件安装
-      const name = options.repoUrl?.split('/').pop()?.replace('.git', '') ?? 'plugin'
+      const rawName = options.repoUrl?.split('/').pop()?.replace('.git', '') ?? 'plugin'
+      const name = stripWebPluginSuffix(rawName)
       const ok = await installFrontendPlugin(
         projectDir,
         options.repoUrl ?? '',
-        name,
+        rawName,
       )
       if (ok) {
         clack.log.success(chalk.green(`${t('pluginInstallSuccess')}: ${name}`))

@@ -76,6 +76,13 @@ export function ensureWebPluginName(name: string): { name: string; appended: boo
   return { name: `${name}${PLUGIN_WEB_SUFFIX}`, appended: true }
 }
 
+/** 去掉 web 插件名称的 _ui 后缀，用于 git clone 目标目录名 */
+export function stripWebPluginSuffix(name: string): string {
+  return name.endsWith(PLUGIN_WEB_SUFFIX)
+    ? name.slice(0, -PLUGIN_WEB_SUFFIX.length)
+    : name
+}
+
 /** 已安装的本地插件信息 */
 export interface InstalledPlugin {
   name: string

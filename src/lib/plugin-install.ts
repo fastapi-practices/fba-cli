@@ -6,7 +6,7 @@ import { run } from './process.js'
 import { gitClone, removeGitDir } from './git.js'
 import { getFrontendPluginDir, getBackendPluginDir, getBackendDir, getFrontendDir } from './config.js'
 import type { InstalledPlugin, PluginInfo, PluginData } from '../types/plugin.js'
-import { inferPluginType } from '../types/plugin.js'
+import { inferPluginType, stripWebPluginSuffix } from '../types/plugin.js'
 
 /**
  * 扫描已安装的插件（通过名称后缀 _ui 判断类型）
@@ -77,11 +77,12 @@ export async function installFrontendPlugin(
   pluginName: string,
   branch?: string,
 ): Promise<boolean> {
-  const pluginDir = join(getFrontendPluginDir(projectDir), pluginName)
+  const localName = stripWebPluginSuffix(pluginName)
+  const pluginDir = join(getFrontendPluginDir(projectDir), localName)
   if (existsSync(pluginDir)) {
     return false // 已存在
   }
-  return gitClone(repoUrl, pluginDir, { branch, label: `Installing ${pluginName}` })
+  return gitClone(repoUrl, pluginDir, { branch, label: `Installing ${localName}` })
 }
 
 /**
@@ -125,18 +126,19 @@ export async function installFromMarket(
   const failed: string[] = []
 
   for (const p of plugins) {
-    const name = basename(p.git.path) || p.plugin.summary
-    const type = inferPluginType(name)
+    const rawName = basename(p.git.path) || p.plugin.summary
+    const type = inferPluginType(rawName)
+    const displayName = type === 'web' ? stripWebPluginSuffix(rawName) : rawName
 
     let ok: boolean
     if (type === 'web') {
-      ok = await installFrontendPlugin(projectDir, p.git.url, name, p.git.branch)
+      ok = await installFrontendPlugin(projectDir, p.git.url, rawName, p.git.branch)
     } else {
       ok = await installBackendPlugin(projectDir, { repoUrl: p.git.url })
     }
 
-    if (ok) success.push(name)
-    else failed.push(name)
+    if (ok) success.push(displayName)
+    else failed.push(displayName)
   }
 
   return { success, failed }
