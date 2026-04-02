@@ -46,6 +46,15 @@ program
     await createAction()
   })
 
+// ─── add ───
+program
+  .command('add')
+  .description(t('cmdAdd'))
+  .action(async () => {
+    const { addAction } = await import('./commands/add.js')
+    await addAction()
+  })
+
 // ─── dev ───
 program
   .command('dev')
