@@ -86,6 +86,14 @@ devCmd
     await devCeleryAction(subcommand, { project: program.opts().project })
   })
 
+devCmd
+  .command('all')
+  .description(t('cmdDevAll'))
+  .action(async () => {
+    const { devAllAction } = await import('./commands/dev.js')
+    await devAllAction({ project: program.opts().project })
+  })
+
 // Dynamic dev subcommands from project .fba.json
 {
   const preProject = (() => {
@@ -100,7 +108,7 @@ devCmd
   if (projectDir && existsSync(projectDir)) {
     const projectConfig = readProjectConfig(projectDir)
     if (projectConfig.devs) {
-      const builtins = new Set(['web', 'celery', 'help'])
+      const builtins = new Set(['web', 'celery', 'all', 'help'])
       for (const [name, entry] of Object.entries(projectConfig.devs)) {
         if (builtins.has(name)) continue
         devCmd

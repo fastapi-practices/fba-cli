@@ -18,7 +18,7 @@ export interface ProjectEntry {
 
 export interface DevEntry {
   cmd: string
-  pwd?: string
+  cwd?: string
   envs?: Record<string, string>
   desc?: string
 }

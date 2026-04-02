@@ -75,6 +75,10 @@ const messages = {
     hintDatabase: "数据库",
     hintCache: "缓存",
     hintMessageQueue: "消息队列",
+    infraDescription:
+      "基础设施将通过 Docker 创建本地开发容器（数据库、缓存等），这不是必须的",
+    infraSkipHint: "如果不需要，可以全部取消选择（按空格取消，回车提交）",
+    infraExternalHint: "未选择 Docker 基础设施，请填写已有的服务连接信息",
 
     // Config
     dbHost: "数据库主机",
@@ -206,6 +210,15 @@ const messages = {
     devStartingFrontend: "正在启动前端开发服务器...",
     devStartingCelery: "正在启动 Celery",
     devCustomStarting: "正在启动",
+    devAllStarting: "正在启动",
+    devAllServices: "个服务",
+    devAllSwitch: "切换",
+    devAllQuit: "全部退出",
+    devAllRestart: "重启",
+    devAllStopped: "所有服务已停止。",
+    devAllExited: "已退出",
+    devAllNoDevs: "未找到可启动的开发服务 (后端/前端目录不存在且未配置 devs)",
+    devAllHintConfig: '请确认项目目录结构或在 .fba.json 中添加 "devs" 配置',
     invalidSubcommand: "无效子命令",
     validOptions: "有效选项",
 
@@ -258,6 +271,7 @@ const messages = {
     cmdDev: "启动后端开发服务器",
     cmdDevWeb: "启动前端开发服务器",
     cmdDevCelery: "启动 Celery 服务 (worker | beat | flower)",
+    cmdDevAll: "同时启动所有已配置的开发服务 (输出流切换)",
     cmdPlugin: "插件管理",
     cmdPluginAdd: "添加插件",
     cmdPluginRemove: "移除插件",
@@ -357,6 +371,12 @@ const messages = {
     hintDatabase: "Database",
     hintCache: "Cache",
     hintMessageQueue: "Message Queue",
+    infraDescription:
+      "Infrastructure uses Docker to create local dev containers (database, cache, etc.), this is optional",
+    infraSkipHint:
+      "If not needed, deselect all (space to toggle, enter to submit)",
+    infraExternalHint:
+      "No Docker infrastructure selected, please provide your existing service connection details",
 
     dbHost: "Database host",
     dbPort: "Database port",
@@ -481,6 +501,15 @@ const messages = {
     devStartingFrontend: "Starting frontend dev server...",
     devStartingCelery: "Starting Celery",
     devCustomStarting: "Starting",
+    devAllStarting: "Starting",
+    devAllServices: "services",
+    devAllSwitch: "switch",
+    devAllQuit: "quit all",
+    devAllRestart: "restart",
+    devAllStopped: "All services stopped.",
+    devAllExited: "exited",
+    devAllNoDevs: "No dev services found (backend/frontend dirs missing and no devs configured)",
+    devAllHintConfig: 'Check project directory structure or add "devs" config to .fba.json',
     invalidSubcommand: "Invalid subcommand",
     validOptions: "Valid options",
 
@@ -530,6 +559,7 @@ const messages = {
     cmdDev: "Start backend development server",
     cmdDevWeb: "Start frontend development server",
     cmdDevCelery: "Start Celery service (worker | beat | flower)",
+    cmdDevAll: "Start all configured dev services (with output switching)",
     cmdPlugin: "Plugin management",
     cmdPluginAdd: "Add a plugin",
     cmdPluginRemove: "Remove a plugin",
