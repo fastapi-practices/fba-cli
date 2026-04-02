@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // index.ts — FBA CLI 入口：Commander 命令路由
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import { Command } from 'commander'
 import chalk from 'chalk'
-import { readGlobalConfig } from './lib/config.js'
+import { readGlobalConfig, readProjectConfig, resolveProjectDir } from './lib/config.js'
 import { initI18nFromConfig, t } from './lib/i18n.js'
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
@@ -55,10 +55,10 @@ program
     await addAction()
   })
 
-// ─── dev ───
-program
+// ─── dev (command group) ───
+const devCmd = program
   .command('dev')
-  .description(t('cmdDev'))
+  .description(t('cmdDevGroup'))
   .option('--host <host>', t('optHost'), '127.0.0.1')
   .option('--port <port>', t('optPort'))
   .option('--no-reload', t('optNoReload'))
@@ -68,9 +68,8 @@ program
     await devAction({ ...options, project: program.opts().project })
   })
 
-// ─── dev:web ───
-program
-  .command('dev:web')
+devCmd
+  .command('web')
   .description(t('cmdDevWeb'))
   .option('--host <host>', t('optHost'))
   .option('--port <port>', t('optPort'))
@@ -79,14 +78,42 @@ program
     await devWebAction({ ...options, project: program.opts().project })
   })
 
-// ─── dev:celery ───
-program
-  .command('dev:celery <subcommand>')
+devCmd
+  .command('celery <subcommand>')
   .description(t('cmdDevCelery'))
   .action(async (subcommand) => {
     const { devCeleryAction } = await import('./commands/dev.js')
     await devCeleryAction(subcommand, { project: program.opts().project })
   })
+
+// Dynamic dev subcommands from project .fba.json
+{
+  const preProject = (() => {
+    const args = process.argv.slice(2)
+    for (let i = 0; i < args.length; i++) {
+      if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) return args[i + 1]
+      if (args[i]?.startsWith('--project=')) return args[i]!.slice('--project='.length)
+    }
+    return undefined
+  })()
+  const projectDir = resolveProjectDir(preProject)
+  if (projectDir && existsSync(projectDir)) {
+    const projectConfig = readProjectConfig(projectDir)
+    if (projectConfig.devs) {
+      const builtins = new Set(['web', 'celery', 'help'])
+      for (const [name, entry] of Object.entries(projectConfig.devs)) {
+        if (builtins.has(name)) continue
+        devCmd
+          .command(name)
+          .description(entry.desc ?? entry.cmd)
+          .action(async () => {
+            const { devCustomAction } = await import('./commands/dev.js')
+            await devCustomAction(name, entry, { project: program.opts().project })
+          })
+      }
+    }
+  }
+}
 
 // ─── plugin ───
 const pluginCmd = program

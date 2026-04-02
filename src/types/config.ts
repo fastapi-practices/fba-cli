@@ -16,6 +16,13 @@ export interface ProjectEntry {
   createdAt: string
 }
 
+export interface DevEntry {
+  cmd: string
+  pwd?: string
+  envs?: Record<string, string>
+  desc?: string
+}
+
 export interface ProjectConfig {
   name: string
   backend_name: string
@@ -25,6 +32,7 @@ export interface ProjectConfig {
   infra: boolean
   infra_services: string[]
   db_type?: DatabaseType
+  devs?: Record<string, DevEntry>
 }
 
 export const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {

@@ -112,20 +112,24 @@ export async function runInherited(
   cmd: string,
   args: string[] = [],
   cwd?: string,
+  options?: { env?: Record<string, string> },
 ): Promise<number> {
-  // 保存 stdin 的 raw mode 状态，并恢复为正常模式
   const wasRaw = process.stdin.isRaw
   if (wasRaw && process.stdin.isTTY) {
     process.stdin.setRawMode(false)
   }
 
   try {
-    const result = await execa(cmd, args, { cwd, stdio: 'inherit', reject: false })
+    const result = await execa(cmd, args, {
+      cwd,
+      stdio: 'inherit',
+      reject: false,
+      env: options?.env,
+    })
     return result.exitCode ?? 1
   } catch {
     return 1
   } finally {
-    // 恢复 stdin raw mode 状态
     if (wasRaw && process.stdin.isTTY) {
       process.stdin.setRawMode(true)
     }

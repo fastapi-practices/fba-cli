@@ -1,13 +1,14 @@
-// dev.ts — dev / dev:web / dev:celery 命令
+// dev.ts — dev 命令组：server / web / celery / 自定义
 import * as clack from '@clack/prompts'
 import chalk from 'chalk'
 import { existsSync } from 'fs'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { readProjectConfig, getInfraDir } from '../lib/config.js'
 import { requireProjectDir, requireBackendDir, requireFrontendDir, warn } from '../lib/errors.js'
 import { isComposeRunning, composeUp } from '../lib/docker.js'
 import { runInherited } from '../lib/process.js'
 import { t } from '../lib/i18n.js'
+import type { DevEntry } from '../types/config.js'
 
 /**
  * fba dev — 启动后端
@@ -89,5 +90,23 @@ export async function devCeleryAction(subcommand: string, options: { project?: s
 
   console.log(chalk.cyan(`\n  ${t('devStartingCelery')} ${subcommand}...\n`))
   const exitCode = await runInherited('uv', ['run', 'fba', 'celery', subcommand], backendDir)
+  process.exit(exitCode)
+}
+
+/**
+ * fba dev <name> — 运行自定义开发命令
+ */
+export async function devCustomAction(
+  name: string,
+  entry: DevEntry,
+  options: { project?: string },
+) {
+  const projectDir = requireProjectDir(options.project)
+  const cwd = entry.pwd ? resolve(projectDir, entry.pwd) : projectDir
+
+  console.log(chalk.cyan(`\n  ${t('devCustomStarting')} ${name}...\n`))
+
+  const [cmd, ...args] = entry.cmd.trim().split(/\s+/) as [string, ...string[]]
+  const exitCode = await runInherited(cmd, args, cwd, { env: entry.envs })
   process.exit(exitCode)
 }

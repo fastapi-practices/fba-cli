@@ -205,6 +205,7 @@ const messages = {
     devStartingBackend: "正在启动后端服务器，端口:",
     devStartingFrontend: "正在启动前端开发服务器...",
     devStartingCelery: "正在启动 Celery",
+    devCustomStarting: "正在启动",
     invalidSubcommand: "无效子命令",
     validOptions: "有效选项",
 
@@ -253,6 +254,7 @@ const messages = {
     cliDescription:
       "创建、管理和运行 fastapi-best-architecture 项目的 Super CLI 工具",
     cmdCreate: "创建新的 FBA 项目（引导流程）",
+    cmdDevGroup: "开发服务器命令",
     cmdDev: "启动后端开发服务器",
     cmdDevWeb: "启动前端开发服务器",
     cmdDevCelery: "启动 Celery 服务 (worker | beat | flower)",
@@ -478,6 +480,7 @@ const messages = {
     devStartingBackend: "Starting backend server on port",
     devStartingFrontend: "Starting frontend dev server...",
     devStartingCelery: "Starting Celery",
+    devCustomStarting: "Starting",
     invalidSubcommand: "Invalid subcommand",
     validOptions: "Valid options",
 
@@ -523,6 +526,7 @@ const messages = {
     cliDescription:
       "Super CLI tool for creating, managing, and running fastapi-best-architecture projects",
     cmdCreate: "Create a new FBA project (guided flow)",
+    cmdDevGroup: "Development server commands",
     cmdDev: "Start backend development server",
     cmdDevWeb: "Start frontend development server",
     cmdDevCelery: "Start Celery service (worker | beat | flower)",
