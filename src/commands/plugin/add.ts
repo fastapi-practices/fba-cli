@@ -1,13 +1,12 @@
 // plugin/add.ts — 插件添加
 import * as clack from '@clack/prompts'
 import chalk from 'chalk'
-import { basename } from 'path'
 import { t } from '../../lib/i18n.js'
 import { requireProjectDir, fatal } from '../../lib/errors.js'
-import { fetchPluginMarketData, filterByType, getMarketPluginType } from '../../lib/plugin-market.js'
-import { installFromMarket, installFrontendPlugin, installBackendPlugin, runPnpmInstall } from '../../lib/plugin-install.js'
+import { fetchPluginMarketData, filterByType, getMarketPluginType, findCounterparts } from '../../lib/plugin-market.js'
+import { installFromMarket, installFrontendPlugin, installBackendPlugin, runPnpmInstall, scanInstalledPlugins } from '../../lib/plugin-install.js'
 import type { PluginData } from '../../types/plugin.js'
-import { inferPluginType, stripWebPluginSuffix } from '../../types/plugin.js'
+import { stripWebPluginSuffix } from '../../types/plugin.js'
 
 /**
  * fba plugin add — 添加插件
@@ -114,9 +113,32 @@ export async function pluginMarketFlow(projectDir: string) {
   })
   if (clack.isCancel(selected) || selected.length === 0) return
 
-  const selectedPlugins = selected
+  let selectedPlugins = selected
     .map(i => filtered[i as number])
     .filter((p): p is PluginData => p !== undefined)
+
+  // 配套插件检测
+  const installed = scanInstalledPlugins(projectDir)
+  const counterparts = findCounterparts(selectedPlugins, plugins, installed)
+
+  if (counterparts.length > 0) {
+    const cpSelected = await clack.multiselect({
+      message: `${t('pluginCounterpartFound')} ${chalk.dim(t('multiselectHint'))}`,
+      options: counterparts.map((p, i) => ({
+        value: i,
+        label: `${p.plugin.summary}`,
+        hint: `${t('pluginCounterpartHint')} | ${getMarketPluginType(p)} | @${p.plugin.author}`,
+      })),
+      initialValues: counterparts.map((_, i) => i),
+      required: false,
+    })
+    if (!clack.isCancel(cpSelected) && cpSelected.length > 0) {
+      const extras = cpSelected
+        .map(i => counterparts[i as number])
+        .filter((p): p is PluginData => p !== undefined)
+      selectedPlugins = [...selectedPlugins, ...extras]
+    }
+  }
 
   // 安装
   clack.log.step(t('pluginInstalling'))

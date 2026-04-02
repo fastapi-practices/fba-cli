@@ -110,6 +110,8 @@ const messages = {
     pluginMarketTitle: "FBA 插件市场",
     pluginSearch: "搜索",
     pluginFilter: "筛选",
+    pluginCounterpartFound: "以下插件有配套的前/后端插件，是否一并安装？",
+    pluginCounterpartHint: "配套",
     pluginInstalling: "正在安装插件...",
     pluginInstallSuccess: "插件安装成功",
     pluginInstallFail: "插件安装失败",
@@ -208,8 +210,12 @@ const messages = {
 
     // Go
     goEnteringProject: "进入项目:",
+    goEnteringBackend: "进入后端目录:",
+    goEnteringFrontend: "进入前端目录:",
     goShell: "Shell:",
     goExitHint: '输入 "exit" 或 Ctrl+D 返回',
+    optGoServer: "进入后端 (server) 目录",
+    optGoFrontend: "进入前端 (web) 目录",
 
     // Remove
     removeSelectProjects: "选择要移除的项目",
@@ -381,6 +387,8 @@ const messages = {
     pluginMarketTitle: "FBA Plugin Marketplace",
     pluginSearch: "Search",
     pluginFilter: "Filter",
+    pluginCounterpartFound: "The following plugins have matching frontend/backend counterparts. Install them too?",
+    pluginCounterpartHint: "counterpart",
     pluginInstalling: "Installing plugins...",
     pluginInstallSuccess: "Plugin installed",
     pluginInstallFail: "Plugin installation failed",
@@ -474,8 +482,12 @@ const messages = {
     validOptions: "Valid options",
 
     goEnteringProject: "Entering project:",
+    goEnteringBackend: "Entering backend directory:",
+    goEnteringFrontend: "Entering frontend directory:",
     goShell: "Shell:",
     goExitHint: 'Type "exit" or Ctrl+D to return',
+    optGoServer: "Enter backend (server) directory",
+    optGoFrontend: "Enter frontend (web) directory",
 
     removeSelectProjects: "Select projects to remove",
     removeConfirm:
