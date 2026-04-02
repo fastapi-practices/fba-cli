@@ -176,6 +176,8 @@ program
 program
   .command('go')
   .description(t('cmdGo'))
+  .option('-s', t('optGoServer'))
+  .option('-f', t('optGoFrontend'))
   .option('--shell <shell>', t('optShell'))
   .action(async (options) => {
     const { goAction } = await import('./commands/go.js')

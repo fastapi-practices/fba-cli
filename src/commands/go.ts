@@ -1,13 +1,13 @@
 // go.ts — 进入项目目录 (启动子 shell)
 import chalk from 'chalk'
 import { existsSync } from 'fs'
-import { readGlobalConfig } from '../lib/config.js'
+import { readGlobalConfig, getBackendDir, getFrontendDir } from '../lib/config.js'
 import { t } from '../lib/i18n.js'
 import { fatal } from '../lib/errors.js'
 import { getDefaultShell, getShellArgs } from '../lib/platform.js'
 import { execa } from 'execa'
 
-export async function goAction(options: { shell?: string }) {
+export async function goAction(options: { shell?: string; s?: boolean; f?: boolean }) {
   const config = readGlobalConfig()
 
   if (!config.current) {
@@ -21,17 +21,33 @@ export async function goAction(options: { shell?: string }) {
       t('hintRunRemove'),
     )
   }
-  // 优先级：命令行 --shell > 全局配置 shell > 平台默认 shell
+
+  let targetDir = projectPath
+  let label = t('goEnteringProject')
+
+  if (options.s) {
+    targetDir = getBackendDir(projectPath)
+    label = t('goEnteringBackend')
+    if (!existsSync(targetDir)) {
+      fatal(`${t('backendDirNotFound')}\n  ${t('expectedAt')} ${targetDir}`)
+    }
+  } else if (options.f) {
+    targetDir = getFrontendDir(projectPath)
+    label = t('goEnteringFrontend')
+    if (!existsSync(targetDir)) {
+      fatal(`${t('frontendDirNotFound')}\n  ${t('expectedAt')} ${targetDir}`)
+    }
+  }
+
   const shell = options.shell || config.shell || getDefaultShell()
 
-  console.log(chalk.cyan(`\n  📂 ${t('goEnteringProject')} ${projectPath}`))
+  console.log(chalk.cyan(`\n  📂 ${label} ${targetDir}`))
   console.log(chalk.dim(`     ${t('goShell')} ${shell}`))
   console.log(chalk.dim(`     ${t('goExitHint')}\n`))
 
-  // 启动交互式子 shell，CWD 设为项目目录
   try {
     await execa(shell, getShellArgs(), {
-      cwd: projectPath,
+      cwd: targetDir,
       stdio: 'inherit',
       env: {
         ...process.env,
