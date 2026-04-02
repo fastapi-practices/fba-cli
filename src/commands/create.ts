@@ -373,6 +373,9 @@ async function _createFlow() {
   if (!dockerOk) {
     clack.log.warn(chalk.yellow(t("infraDockerFail")));
   } else {
+    clack.log.info(chalk.cyan(t("infraDescription")));
+    clack.log.info(chalk.dim(t("infraSkipHint")));
+
     const infraSelection = await clack.multiselect({
       message: `${t("infraSelect")} ${chalk.dim(`(${t("envOptional")})`)} ${chalk.dim(t("multiselectHint"))}`,
       options: [
@@ -411,6 +414,9 @@ async function _createFlow() {
   }
 
   // ─── 服务连接信息配置（始终提示） ───
+  if (!hasInfra) {
+    clack.log.warn(chalk.yellow(t("infraExternalHint")));
+  }
   clack.log.step(t("envConfigTitle"));
 
   // 辅助：根据服务是否由 Docker 管理生成 hint
