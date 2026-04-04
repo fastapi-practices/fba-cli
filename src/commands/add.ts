@@ -135,6 +135,13 @@ function detectProject(projectDir: string): DetectResult {
     }
   }
 
+  // fallback: 项目根目录本身就是后端（老项目结构）
+  if (!result.backendName && isBackendDir(projectDir)) {
+    result.backendName = ".";
+    const { dbType } = parseBackendEnv(projectDir);
+    result.dbType = dbType;
+  }
+
   // 检测基础设施
   const infraDir = join(projectDir, "infra");
   if (existsSync(infraDir) && statSync(infraDir).isDirectory()) {
@@ -198,9 +205,13 @@ export async function addAction() {
   }
 
   // 4. 展示探测结果
+  const backendDisplayName =
+    detected.backendName === "."
+      ? `${basename(projectDir)} ${chalk.dim("(project root)")}`
+      : detected.backendName;
   clack.log.step(t("addConfirmDetected"));
   clack.log.info(
-    `${chalk.bold(t("addBackendDetected"))}: ${chalk.green(detected.backendName)}`,
+    `${chalk.bold(t("addBackendDetected"))}: ${chalk.green(backendDisplayName)}`,
   );
   clack.log.info(
     `${chalk.bold(t("addFrontendDetected"))}: ${chalk.green(detected.frontendName)}`,
@@ -298,7 +309,7 @@ export async function addAction() {
   clack.note(
     [
       `${chalk.bold(t("addProjectName"))}: ${projectName}`,
-      `${chalk.bold(t("addBackendDetected"))}: ${detected.backendName}`,
+      `${chalk.bold(t("addBackendDetected"))}: ${backendDisplayName}`,
       `${chalk.bold(t("addFrontendDetected"))}: ${detected.frontendName}`,
       `${chalk.bold(t("addDbTypeDetected"))}: ${dbType}`,
       `${chalk.bold(t("serverPort"))}: ${serverPort}`,
