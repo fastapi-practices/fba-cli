@@ -194,6 +194,11 @@ const messages = {
     projectListEmpty: "暂无已注册项目",
     goClipboard: "已复制到剪贴板！粘贴以导航：",
 
+    // Use
+    useNotFbaProject: "当前目录不是 FBA 项目（未找到 .fba.json）",
+    useNotRegistered: "该项目尚未注册到管理列表",
+    useHintAdd: '运行 "fba-cli add" 将项目添加到管理列表',
+
     // Errors & hints
     projectDirNotExist: "项目目录不存在",
     backendDirNotFound: "后端目录未找到",
@@ -496,6 +501,11 @@ const messages = {
     projectNotFound: "Project not found",
     projectListEmpty: "No projects registered",
     goClipboard: "Copied to clipboard! Paste to navigate:",
+
+    // Use
+    useNotFbaProject: "Current directory is not an FBA project (.fba.json not found)",
+    useNotRegistered: "This project is not registered in the managed list",
+    useHintAdd: 'Run "fba-cli add" to add the project to the managed list',
 
     projectDirNotExist: "Project directory does not exist",
     backendDirNotFound: "Backend directory not found",

@@ -193,11 +193,11 @@ program
   })
 
 program
-  .command('use')
+  .command('use [dir]')
   .description(t('cmdUse'))
-  .action(async () => {
+  .action(async (dir?: string) => {
     const { useAction } = await import('./commands/use.js')
-    await useAction()
+    await useAction(dir)
   })
 
 program

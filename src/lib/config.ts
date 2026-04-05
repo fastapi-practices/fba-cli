@@ -1,6 +1,6 @@
 // config.ts — 全局 & 项目配置 CRUD
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join } from 'path'
+import { join, dirname, resolve, parse } from 'path'
 import { homedir } from 'os'
 import type { GlobalConfig, ProjectConfig, ProjectEntry } from '../types/config.js'
 import { DEFAULT_GLOBAL_CONFIG, DEFAULT_PROJECT_CONFIG } from '../types/config.js'
@@ -98,10 +98,27 @@ export function writeProjectConfig(projectDir: string, config: ProjectConfig): v
 // ─── 路径解析 ───
 
 /**
- * 解析项目目录：优先命令行 -p 参数，其次全局 current
+ * 从指定目录向上查找包含 .fba.json 的项目根目录
+ */
+export function findProjectDirUpwards(startDir?: string): string | null {
+  let dir = resolve(startDir ?? process.cwd())
+  const root = parse(dir).root
+  while (true) {
+    if (existsSync(join(dir, '.fba.json'))) return dir
+    const parent = dirname(dir)
+    if (parent === dir || parent === root) break
+    dir = parent
+  }
+  return null
+}
+
+/**
+ * 解析项目目录：优先命令行 -p 参数，其次 cwd 向上查找，最后全局 current
  */
 export function resolveProjectDir(cliProjectDir?: string): string | null {
   if (cliProjectDir) return cliProjectDir
+  const fromCwd = findProjectDirUpwards()
+  if (fromCwd) return fromCwd
   return getCurrentProjectPath()
 }
 
