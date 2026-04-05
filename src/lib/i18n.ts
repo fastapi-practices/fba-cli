@@ -205,6 +205,16 @@ const messages = {
       '运行 "fba-cli remove" 清理，或运行 "fba-cli create" 创建新项目',
     hintRunUse: '运行 "fba-cli use" 设置默认项目',
 
+    // Check
+    checkTitle: "检查仓库更新状态",
+    checkFetching: "正在拉取远程更新",
+    checkDirNotFound: "目录不存在",
+    checkFetchFailed: "无法获取远程状态",
+    checkUpToDate: "已是最新",
+    checkBehind: "落后",
+    checkCommits: "个提交",
+    cmdCheck: "检查项目仓库落后远程多少 git 提交",
+
     // Dev server
     devStartingBackend: "正在启动后端服务器，端口:",
     devStartingFrontend: "正在启动前端开发服务器...",
@@ -496,6 +506,16 @@ const messages = {
     hintRunRemove:
       'Run "fba-cli remove" to clean up, or "fba-cli create" to create a new project',
     hintRunUse: 'Run "fba-cli use" to set a default project',
+
+    // Check
+    checkTitle: "Checking repository update status",
+    checkFetching: "Fetching remote updates",
+    checkDirNotFound: "directory not found",
+    checkFetchFailed: "Failed to fetch remote status",
+    checkUpToDate: "Up to date",
+    checkBehind: "behind",
+    checkCommits: "commits",
+    cmdCheck: "Check how many git commits the project repos are behind remote",
 
     devStartingBackend: "Starting backend server on port",
     devStartingFrontend: "Starting frontend dev server...",

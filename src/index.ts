@@ -219,6 +219,15 @@ program
     await goAction(options)
   })
 
+// ─── check ───
+program
+  .command('check')
+  .description(t('cmdCheck'))
+  .action(async () => {
+    const { checkAction } = await import('./commands/check.js')
+    await checkAction({ project: program.opts().project })
+  })
+
 // ─── infra ───
 const infraCmd = program
   .command('infra')
