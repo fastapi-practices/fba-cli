@@ -275,6 +275,10 @@ const messages = {
     registryDefault: "官方源 (未配置)",
     registrySetupTitle: "配置包管理器镜像源",
 
+    // Update check
+    updateAvailable: "发现新版本: {current} → {latest}",
+    updateHint: "运行 npm i -g @fba/cli 更新",
+
     // Edit
     editOpening: "正在使用编辑器打开",
 
@@ -578,6 +582,10 @@ const messages = {
     registryPypiSet: "PyPI registry →",
     registryDefault: "Official (not configured)",
     registrySetupTitle: "Set up package manager registries",
+
+    // Update check
+    updateAvailable: "New version available: {current} → {latest}",
+    updateHint: "Run npm i -g @fba/cli to update",
 
     editOpening: "Opening with editor",
 

@@ -7,6 +7,7 @@ import { Command } from 'commander'
 import chalk from 'chalk'
 import { readGlobalConfig, readProjectConfig, resolveProjectDir } from './lib/config.js'
 import { initI18nFromConfig, t } from './lib/i18n.js'
+import { checkForUpdate } from './lib/update-check.js'
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const packageJsonPath = resolve(currentDir, '..', 'package.json')
@@ -261,6 +262,9 @@ configCmd
     const { configSetAction } = await import('./commands/config-set.js')
     await configSetAction()
   })
+
+// ─── Update check (async, non-blocking) ───
+checkForUpdate(cliVersion)
 
 // ─── Run ───
 program.parse()
