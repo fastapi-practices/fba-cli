@@ -690,8 +690,10 @@ async function _createFlow() {
   clack.note(
     [
       `cd ${projectDir}`,
-      `fba-cli dev          # ${t("initInfra")}`,
-      `fba-cli dev:web      # ${t("initFrontend")}`,
+      `fba-cli dev              # ${t("cmdDev")}`,
+      `fba-cli dev web          # ${t("cmdDevWeb")}`,
+      `fba-cli dev celery <sub> # ${t("cmdDevCelery")}`,
+      `fba-cli dev all          # ${t("cmdDevAll")}`,
     ].join("\n"),
     t("nextSteps"),
   );
