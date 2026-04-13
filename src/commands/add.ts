@@ -154,29 +154,46 @@ function detectProject(projectDir: string): DetectResult {
 
 // ─── 命令入口 ───
 
-export async function addAction() {
+export async function addAction(pathArg?: string) {
   clack.intro(chalk.bgCyan(" fba-cli add "));
 
-  // 1. 输入项目目录
-  const projectDirInput = await clack.text({
-    message: t("addProjectDir"),
-    placeholder: process.cwd(),
-    defaultValue: process.cwd(),
-    validate: (v) => {
-      const dir = v?.trim() ? resolve(v.trim()) : process.cwd();
-      if (!existsSync(dir)) return t("projectRootNotExist");
-      if (!statSync(dir).isDirectory()) return t("projectRootNotDirectory");
-      return undefined;
-    },
-  });
-  if (clack.isCancel(projectDirInput)) {
-    clack.outro(chalk.dim("Cancelled"));
-    return;
-  }
+  let projectDir: string;
 
-  const projectDir = projectDirInput?.trim()
-    ? resolve(String(projectDirInput).trim())
-    : process.cwd();
+  if (pathArg) {
+    // 直接传入路径，跳过交互式输入
+    projectDir = resolve(pathArg === "." ? process.cwd() : pathArg);
+    if (!existsSync(projectDir)) {
+      clack.log.error(chalk.red(t("projectRootNotExist")));
+      clack.outro("");
+      return;
+    }
+    if (!statSync(projectDir).isDirectory()) {
+      clack.log.error(chalk.red(t("projectRootNotDirectory")));
+      clack.outro("");
+      return;
+    }
+  } else {
+    // 交互式输入
+    const projectDirInput = await clack.text({
+      message: t("addProjectDir"),
+      placeholder: process.cwd(),
+      defaultValue: process.cwd(),
+      validate: (v) => {
+        const dir = v?.trim() ? resolve(v.trim()) : process.cwd();
+        if (!existsSync(dir)) return t("projectRootNotExist");
+        if (!statSync(dir).isDirectory()) return t("projectRootNotDirectory");
+        return undefined;
+      },
+    });
+    if (clack.isCancel(projectDirInput)) {
+      clack.outro(chalk.dim("Cancelled"));
+      return;
+    }
+
+    projectDir = projectDirInput?.trim()
+      ? resolve(String(projectDirInput).trim())
+      : process.cwd();
+  }
 
   // 检查是否已注册
   const globalConfig = readGlobalConfig();

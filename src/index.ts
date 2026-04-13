@@ -49,11 +49,11 @@ program
 
 // ─── add ───
 program
-  .command('add')
+  .command('add [path]')
   .description(t('cmdAdd'))
-  .action(async () => {
+  .action(async (path?: string) => {
     const { addAction } = await import('./commands/add.js')
-    await addAction()
+    await addAction(path)
   })
 
 // ─── dev (command group) ───
