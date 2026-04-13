@@ -112,8 +112,9 @@ const messages = {
     // Plugin
     pluginInstallQuestion: "是否安装第三方插件？",
     pluginMarketTitle: "FBA 插件市场",
-    pluginSearch: "搜索",
+    pluginSearch: "选择插件",
     pluginFilter: "筛选",
+    pluginSearchPlaceholder: "输入关键词搜索",
     pluginCounterpartFound: "以下插件有配套的前/后端插件，是否一并安装？",
     pluginCounterpartHint: "配套",
     pluginInstalling: "正在安装插件...",
@@ -429,8 +430,9 @@ const messages = {
 
     pluginInstallQuestion: "Install third-party plugins?",
     pluginMarketTitle: "FBA Plugin Marketplace",
-    pluginSearch: "Search",
+    pluginSearch: "Select plugins",
     pluginFilter: "Filter",
+    pluginSearchPlaceholder: "Type to search",
     pluginCounterpartFound: "The following plugins have matching frontend/backend counterparts. Install them too?",
     pluginCounterpartHint: "counterpart",
     pluginInstalling: "Installing plugins...",

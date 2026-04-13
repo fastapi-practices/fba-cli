@@ -7,6 +7,7 @@ import { fetchPluginMarketData, filterByType, getMarketPluginType, findCounterpa
 import { installFromMarket, installFrontendPlugin, installBackendPlugin, runPnpmInstall, scanInstalledPlugins } from '../../lib/plugin-install.js'
 import type { PluginData } from '../../types/plugin.js'
 import { stripWebPluginSuffix } from '../../types/plugin.js'
+import { searchableMultiselect } from '../../lib/searchable-multiselect.js'
 
 /**
  * fba plugin add — 添加插件
@@ -101,20 +102,20 @@ export async function pluginMarketFlow(projectDir: string) {
 
   const filtered = filterByType(plugins, typeFilter as string)
 
-  // 多选插件
-  const selected = await clack.multiselect({
+  // 可搜索的多选插件
+  const selected = await searchableMultiselect({
     message: `${t('pluginSearch')} ${chalk.dim(t('multiselectHint'))}`,
     options: filtered.map((p, i) => ({
       value: i,
-      label: `${p.plugin.summary}`,
+      label: p.plugin.summary,
       hint: `v${p.plugin.version} | ${getMarketPluginType(p)} | @${p.plugin.author}`,
     })),
-    required: false,
+    searchPlaceholder: t('pluginSearchPlaceholder'),
   })
-  if (clack.isCancel(selected) || selected.length === 0) return
+  if (clack.isCancel(selected) || (selected as number[]).length === 0) return
 
-  let selectedPlugins = selected
-    .map(i => filtered[i as number])
+  let selectedPlugins = (selected as number[])
+    .map(i => filtered[i])
     .filter((p): p is PluginData => p !== undefined)
 
   // 配套插件检测
