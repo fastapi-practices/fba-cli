@@ -264,6 +264,9 @@ const messages = {
     configDefaultSet: "默认项目 →",
     configSelectSetting: "选择要设置的配置项",
     configEnvDefault: "环境默认",
+    configInvalidKey: "无效的配置项: {key}，可选: {valid}",
+    configInvalidValue: "无效的值，{key} 可选: {valid}",
+    configProjectNotFound: "未找到项目: {name}",
 
     // Registry
     registryNpmLabel: "npm 镜像源",
@@ -306,7 +309,7 @@ const messages = {
     cmdInfraStop: "停止基础设施服务 (docker compose down)",
     cmdInfraStart: "启动基础设施服务 (docker compose up)",
     cmdConfig: "配置管理",
-    cmdConfigSet: "设置配置项",
+    cmdConfigSet: "设置配置项 (fba config set <key> <value>)",
     optProject: "指定项目目录",
     optLang: "语言 (zh/en)",
     optShell: "指定 Shell（默认使用环境变量 SHELL）",
@@ -572,6 +575,9 @@ const messages = {
     configDefaultSet: "Default project →",
     configSelectSetting: "Select setting",
     configEnvDefault: "env default",
+    configInvalidKey: "Invalid config key: {key}, valid keys: {valid}",
+    configInvalidValue: "Invalid value for {key}, valid: {valid}",
+    configProjectNotFound: "Project not found: {name}",
 
     // Registry
     registryNpmLabel: "npm Registry",
@@ -613,7 +619,7 @@ const messages = {
     cmdInfraStop: "Stop infrastructure services (docker compose down)",
     cmdInfraStart: "Start infrastructure services (docker compose up)",
     cmdConfig: "Configuration management",
-    cmdConfigSet: "Set a configuration option",
+    cmdConfigSet: "Set a config option (fba config set <key> <value>)",
     optProject: "Specify project directory",
     optLang: "Language (zh/en)",
     optShell: "Shell to use (default: env SHELL)",
@@ -643,8 +649,14 @@ export function getLanguage(): "zh" | "en" {
   return currentLang;
 }
 
-export function t(key: MessageKey): string {
-  return messages[currentLang][key] ?? key;
+export function t(key: MessageKey, params?: Record<string, string>): string {
+  let msg: string = messages[currentLang][key] ?? key;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      msg = msg.replaceAll(`{${k}}`, v);
+    }
+  }
+  return msg;
 }
 
 export function initI18nFromConfig(config: GlobalConfig) {

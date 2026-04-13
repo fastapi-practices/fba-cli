@@ -127,3 +127,52 @@ export async function configSetAction() {
   const opt = options.find(o => o.key === selected)
   if (opt) await opt.set()
 }
+
+// ─── 键值对直接设置 ───
+
+const VALID_KEYS = ['language', 'shell', 'current', 'npmRegistry', 'pypiRegistry'] as const
+type ConfigKey = typeof VALID_KEYS[number]
+
+export function configSetKVAction(key: string, value: string) {
+  if (!VALID_KEYS.includes(key as ConfigKey)) {
+    clack.log.error(
+      chalk.red(t('configInvalidKey', { key, valid: VALID_KEYS.join(', ') })),
+    )
+    return
+  }
+
+  const config = readGlobalConfig()
+
+  switch (key as ConfigKey) {
+    case 'language':
+      if (value !== 'zh' && value !== 'en') {
+        clack.log.error(chalk.red(t('configInvalidValue', { key, valid: 'zh, en' })))
+        return
+      }
+      config.language = value
+      setLanguage(value)
+      break
+    case 'shell':
+      config.shell = value || undefined
+      break
+    case 'current': {
+      const project = config.projects.find(p => p.name === value || p.path === value)
+      if (!project) {
+        clack.log.error(chalk.red(t('configProjectNotFound', { name: value })))
+        return
+      }
+      config.current = project.path
+      value = project.name
+      break
+    }
+    case 'npmRegistry':
+      config.npmRegistry = value
+      break
+    case 'pypiRegistry':
+      config.pypiRegistry = value
+      break
+  }
+
+  writeGlobalConfig(config)
+  clack.log.success(chalk.green(`${key} → ${value}`))
+}

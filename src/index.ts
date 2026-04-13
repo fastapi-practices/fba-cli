@@ -254,13 +254,17 @@ infraCmd
 const configCmd = program
   .command('config')
   .description(t('cmdConfig'))
-
-configCmd
-  .command('set')
-  .description(t('cmdConfigSet'))
   .action(async () => {
     const { configSetAction } = await import('./commands/config-set.js')
     await configSetAction()
+  })
+
+configCmd
+  .command('set <key> <value>')
+  .description(t('cmdConfigSet'))
+  .action(async (key: string, value: string) => {
+    const { configSetKVAction } = await import('./commands/config-set.js')
+    await configSetKVAction(key, value)
   })
 
 // ─── Update check (async, non-blocking) ───
